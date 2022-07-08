@@ -10,7 +10,6 @@ to find the total impedance of the circuit
 see Goodnotes section 2
 """
 
-#可以添加一个C = 0时的报错
 
 from sre_constants import BRANCH
 import matplotlib.pyplot as plt
