@@ -42,7 +42,7 @@ def find_implist(w_h, w_l, c1, c2, r1, r2):
         zrlist.append(z.real)
         zilist.append(-z.imag)                    # use positive zimag to keep image in first quadrant
         fzlist.append((1/z).imag / w)           #fzlist is the effective capacitance term in the Bode plot y axis
-    return wlist, zrlist, zilist, fzlist
+    return np.array(wlist), np.array(zrlist), np.array(zilist), fzlist
 
 #Plotting Nyquist plot for zr and zi list
 def plot_N(zrlist, zilist):         #parameters are: high end of freq, low end of freq,   
