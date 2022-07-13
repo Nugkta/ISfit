@@ -7,10 +7,10 @@ Created on Thu Jul  7 10:48:35 2022
 Finding the spectra of a more complex circuit. Using more segmented equations
 to find the total impedance of the circuit
 
-see Goodnotes section 2
+see onenote section 2
 """
 
-#可以添加一个C = 0时的报错
+
 
 from sre_constants import BRANCH
 import sec_circuit2_cleaned as circuit

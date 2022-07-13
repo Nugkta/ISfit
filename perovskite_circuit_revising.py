@@ -55,11 +55,14 @@ def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init):
 
 
 def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init):
-    wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
+    wlist = np.arange(w_h, w_l, 1e-2)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
     zrlist = []                                 #reference Note section 1
     zilist = []
-    fzlist = []                                 #the y axis of the Bode spectrum (the effective capacitance)
+    fzlist = []
+    n=0                                 #the y axis of the Bode spectrum (the effective capacitance)
     for w in wlist:
+        print(n)
+        n+=1
         z = find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init)
         zrlist.append(z.real)
         zilist.append(-z.imag)                    # use positive zimag to keep image in first quadrant
@@ -69,7 +72,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init):
 
 #%%
 #a, b, c, d= find_implist(1e-4, 10., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
-a, b, c, d= find_implist(1e-4, 10, 1e-4,1e-4,4,4,1e-4,1e-4, 1,5,1)
+a, b, c, d= find_implist(0.001, 0.2, 1e-4,1e-4,4,4,1e-4,1e-4, 1,5,1)
 print(a)
 
 #%%
