@@ -33,7 +33,7 @@ def find_imp(w, c1, c2, r1, r2):
 
 # Findling Z for a list of input frequencies
 def find_implist(w_h, w_l, c1, c2, r1, r2):
-    wlist = np.arange(w_h, w_l, 0.001)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
+    wlist = np.arange(w_h, w_l, 1e-4)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
     zrlist = []                                 #reference Note section 1
     zilist = []
     fzlist = []                                 #the y axis of the frequency spectrum

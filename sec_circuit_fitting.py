@@ -71,59 +71,8 @@ def plot_spec(w_h, w_l, c1, c2, r1, r2, tp):
         plot_B(wlist, fzlist)   
 
 
-
-
-# def plot_spec(w_h, w_l, c1, c2, r1, r2, tp):         #parameters are: high end of freq, low end of freq,   
-#     wlist = np.arange(w_h, w_l, 0.001)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
-#     zrlist = []                                 #reference Note section 1
-#     zilist = []
-#     fzlist = []                                 #the y axis of the frequency spectrum
-#     for w in wlist:
-#         z = find_imp(w, c1, c2, r1, r2)
-#         zrlist.append(z.real)
-#         zilist.append(-z.imag)                    # use positive zimag to keep image in first quadrant
-#         fzlist.append((1/z).imag / w)
-#     if tp == 'N':
-#         plt.plot(zrlist, zilist,'.')
-#         plt.xlabel('real z')
-#         plt.ylabel('imag z')
-#         plt.title('Nyquist plot')
-#         plt.show()
-#     if tp == 'F':
-#         plt.plot(wlist, fzlist,'.')
-#         plt.title('Freqency plot')
-#         plt.xlabel('Freqency')
-#         plt.ylabel('Im($Z^{-1}$)/$\omega$')
-#         plt.xscale('log')
-#     return zrlist, zilist
-
-#%%Testing
-
+#%%Plotting the Nyquist plot
 plot_spec(1e-3,100,2,15,5,10,'N')      #double semicircle parameters
-#plot_spec(1e-2,100,1,1,10,10,'N')
-# plot_spec(1,100,1,1,10,15,'N')
-
-
-#%%Testing 
-plot_spec(1e-3,100,2,15,5,10,'B')   #double semicircle parameters
-#plot_spec(1e-2,100,1,1,10,10,'F')    
-#%% testing
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -134,30 +83,31 @@ plt.xscale("log")
 
 
 #%%
-def func_imp(w, c1, c2, r1, r2):
-    z = find_imp(w, c1, c2, r1, r2)
+def func_imp(w, c1, c2, r1, r2, func):                   #the funtion used in the curve fit
+    z = func(w, c1, c2, r1, r2)
     return np.hstack([z.real, z.imag])
     #return np.stack((z.real, z.imag), axis = 1)
 
 Zlist = np.hstack([zrlist, zilist])
 #Zlist = np.stack((zrlist, zilist), axis = 1)
 
-popt, pcov = curve_fit(func_imp, wlist, Zlist, p0 = None, maxfev = 10000)
+popt, pcov = curve_fit(lambda w, c1, c2, r1, r2: func_imp(w, c1, c2, r1, r2, find_imp) , wlist, Zlist, p0 = None, maxfev = 10000)
 
 #%%
-zfit = func_imp(wlist, *popt)
-plt.plot(wlist, zfit[0: 99999])
+zfit = func_imp(wlist, *popt,find_imp)
+zfit_r = zfit[0: len(wlist)]
+zfit_i = zfit[len(wlist): 2 * len(wlist)]
+
 plt.xscale('log')
 plt.plot(wlist, zrlist)
-
+plt.plot(wlist, zfit_r,'r--')
 #%%
-plt.plot(wlist, zfit[99999: 199998])
 plt.xscale('log')
-
 plt.plot(wlist, zilist)
+plt.plot(wlist, zfit_i,'r--')
 #%%
 plot_spec(1e-3,100,2,15,5,10,'N')  
-plt.plot(zfit[0: 99999],zfit[99999: 199998],'r--')
+plt.plot(zfit_r, zfit_i,'r--')
 
 
 

@@ -23,7 +23,7 @@ def func_imp(w, c1, c2, r1, r2, func):                   #the funtion used in th
     return np.hstack([z.real, z.imag])
     
 def fit(wlist, zrlist, zilist):                          #returns the fitting parameters 
-    Zlist = np.hstack([zrlist, -zilist])
+    Zlist = np.hstack([zrlist, zilist])
     popt, pcov = curve_fit(lambda w, c1, c2, r1, r2: func_imp(w, c1, c2, r1, r2, circuit.find_imp) , wlist, Zlist, p0 = None, maxfev = 10000)
     return popt, pcov
 
@@ -34,33 +34,76 @@ def plot_fit(wlist, popt, zrlist, zilist):
     fig = plt.figure()
     plt.subplot((221))                          #z_real vs. freq
     plt.xscale('log')
-    plt.plot(wlist, zrlist,'.')
+    plt.plot(wlist, zrlist)
     plt.plot(wlist, zfit_r,'r--')
     plt.title("Z_real vs. freq")
     plt.subplot((222))                      #z_image vs. freq
     plt.xscale('log')
-    plt.plot(wlist, zilist,'.')
-    plt.plot(wlist, -zfit_i,'r--')      #negative the fitted z_imag for Nyquist plot
+    plt.plot(wlist, zilist)
+    plt.plot(wlist, zfit_i,'r--')
     plt.title("Z_imag vs. freq")
     fig.add_subplot(2, 2, (3, 4))           #z_real vs. z_imag
-    plt.plot(zrlist,zilist,'.')
-    plt.plot(zfit_r, -zfit_i,'r--')
+    plt.plot(zrlist,zilist)
+    plt.plot(zfit_r, zfit_i,'r--')
     plt.title("Nyquist ")
     
 
 def main(wlist, zrlist, zilist):
-    popt, pcov = fit(wlist, zrlist, zilist)
+    popt, popv = fit(wlist, zrlist, zilist)
     plot_fit(wlist, popt, zrlist, zilist)
-    print('the fit parameters are', *popt)
+    print('the fitting parameters are', *popt)
     return popt, pcov
 
     
     
-wlist, zrlist, zilist, fzlist = circuit.find_implist(1e-5,100,2,50,5,10)
-#wlist, zrlist, zilist, fzlist = circuit.find_implist(1e-3,100,2,15,5,10)    #gernerating simulated data
+    
+#%% now try to curve fit the data coming out of the simulation zrlist vs. zilist
+
+#generating simulated data
+wlist, zrlist, zilist, fzlist = circuit.find_implist(1e-3,100,2,15,5,10) 
 popt, pcov = main(wlist, zrlist, zilist)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # #%%
-# plot_fit(wlist, popt, zrlist, zilist)
+# Zlist = np.hstack([zrlist, zilist])
+# popt, pcov = curve_fit(lambda w, c1, c2, r1, r2: func_imp(w, c1, c2, r1, r2, circuit.find_imp) , wlist, Zlist, p0 = None, maxfev = 10000)
+
+# #%%
+# fig = plt.figure()
+# zfit = func_imp(wlist, *popt, circuit.find_imp)
+# zfit_r = zfit[0: len(wlist)]
+# zfit_i = zfit[len(wlist): 2 * len(wlist)]
+# plt.subplot((221))
+# plt.xscale('log')
+# plt.plot(wlist, zrlist)
+# plt.plot(wlist, zfit_r,'r--')
+# plt.title("Z_real vs. freq")
+
+# plt.subplot((222))
+# plt.xscale('log')
+# plt.plot(wlist, zilist)
+# plt.plot(wlist, zfit_i,'r--')
+# plt.title("Z_imag vs. freq")
+
+# fig.add_subplot(2, 2, (3, 4))
+# plt.plot(zrlist,zilist)
+# plt.plot(zfit_r, zfit_i,'r--')
+# plt.title("Nyquist ")
+
+
+
 
 
 
