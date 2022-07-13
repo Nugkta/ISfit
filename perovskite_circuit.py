@@ -37,8 +37,8 @@ def Zcap(C , w):    #the impedance of a capacitor
 #
 
 
-def perov_circuit(C_a, C_b, R_i, C_g, C_c, J_s, n, V, w):  
-    q_init = 0
+def perov_circuit(C_a, C_b, R_i, C_g, C_c, J_s, n, V, w, q_init):  
+    q_init = q_init
     #dQdt = (V - Q/C_a - Q/C_b - Q/C_c)/R_i                 
     F = lambda t, Q: (V - Q/C_a - Q/C_b - Q/C_c)/R_i      #the ODE of the ionic branch
     #now solve for Q
@@ -54,8 +54,8 @@ def perov_circuit(C_a, C_b, R_i, C_g, C_c, J_s, n, V, w):
 
 
 #%%
-a = perov_circuit(1., 1., 1., 1., 1., 1., 1., 1., 1.)  
-
+a = perov_circuit(1., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
+print(a[0][-1])
 
 
 
