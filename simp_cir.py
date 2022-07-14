@@ -39,8 +39,8 @@ def plot_spec(w_h, w_l, R1, R2, C, tp):         #parameters are: high end of fre
         
         #%%
 #plotting Nyquist plot    
-a,b = plot_spec(0,100,3,4,4,'N')
-a,b = plot_spec(0,100,0,4,4,'N')
+#a,b = plot_spec(0,100,3,4,4,'N')
+a,b = plot_spec(0,100,0,1,10,'N')
 
 
 

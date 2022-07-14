@@ -38,16 +38,16 @@ def Zcap(C , w):    #the impedance of a capacitor
 
 
 def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init):  
-    q_init = q_init
-    #dQdt = (V - Q/C_a - Q/C_b - Q/C_c)/R_i                 
+    q_init = q_init 
     F = lambda t, Q: (V - Q/C_a - Q/C_b - Q/C_c)/R_i      #the ODE of the ionic branch
     #now solve for Q
-    t_eval = np.arange(0, 10, 0.1)                      #times at which store in solution
-    sol = solve_ivp(F, [0, 10], [q_init], t_eval=t_eval)     #approximate the solution in interval [0, 10], initial value of q
-    v1 = V - sol.y[0][-1]/C_a  #the voltage connecting to thetransistor
+    t_eval = np.arange(0, 5, 0.1)                      #times at which store in solution
+    sol = solve_ivp(F, [0, 5], [q_init], t_eval=t_eval)     #approximate the solution in interval [0, 10], initial value of q
+   #v1 = V - sol.y[0][-1]/C_a  #the voltage connecting to thetransistor
+    v1 = 2
     J1 = J_s*(np.e**(q*(v1)/(n*k*T)) - np.e**(q*(v1 - V)/(n*k*T))) #finding J_1by using the property of thransistor
     Z_elct = 1/(J_s*(q/(k*T))*J1)   #finding the impedance of the electronic branch by differentiating dJ/dv
-    Z_d = 1 / (1/Zcap(C_g,w) + R_i)
+    Z_d = 1 / (1/Zcap(C_g,w) + 1/R_i)
     Z_ion = (Zcap(C_a,w) + Zcap(C_b,w) + Zcap(C_c,w) + Z_d)
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     return Z_tot
@@ -55,7 +55,7 @@ def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init):
 
 
 def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init):
-    wlist = np.arange(w_h, w_l, 1e-2)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
+    wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
     zrlist = []                                 #reference Note section 1
     zilist = []
     fzlist = []
@@ -73,13 +73,24 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init):
 #%%
 #a, b, c, d= find_implist(1e-4, 10., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
 
-a, b, c, d= find_implist(0.001, 10, 1,1,40,40,1,1, 1,5,1)
+a, b, c, d= find_implist(0.001, 10, 10,10,4,4,10, 1,1,1,1)
 print(a)
 
 
 
+
+plt.plot(b,c,'.')
+plt.title('Nyquist plot')
+plt.xlabel('z_real')
+plt.ylabel('y_real')
+
 #%%
-plt.plot(b,c)
+plt.plot(a,b,'.')
+plt.plot(a,c,'.')
+plt.xscale('log')
+plt.legend(['z_real','z_imag'])
+plt.xlabel('frequency')
+plt.ylabel('magnitude of z')
 
 
 
