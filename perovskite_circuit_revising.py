@@ -72,8 +72,15 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init):
 
 #%%
 #a, b, c, d= find_implist(1e-4, 10., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
-a, b, c, d= find_implist(0.001, 0.2, 1e-4,1e-4,4,4,1e-4,1e-4, 1,5,1)
+a, b, c, d= find_implist(0.001, 100, 1,1,4,4,1,1, 1,5,1)
 print(a)
+
+#%%
+plt.plot(b,c)
+
+
+
+
 
 #%%
 #b = find_imp(10., 1., 1., 1., 1., 1., 1., 1., 1., 0)
