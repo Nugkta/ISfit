@@ -28,17 +28,27 @@ def plot_spec(w_h, w_l, R1, R2, C, tp):         #parameters are: high end of fre
         plt.xlabel('real z')
         plt.ylabel('imag z')
         plt.plot(wlist, zilist,'.')
-
+    if tp == 'fz':
+        plt.plot(wlist, zrlist,'.')
+        plt.xlabel('freq')
+        plt.ylabel('real z')
+        plt.plot(wlist, zilist,'.')
+        plt.xlabel('freq')
+        plt.ylabel('imag z')
+        plt.xscale('log')
+        
+        #%%
 #plotting Nyquist plot    
-a,b = plot_spec(0,100,3,4,4,'N')
-a,b = plot_spec(0,100,0,4,4,'N')
+#a,b = plot_spec(0,100,3,4,4,'N')
+a,b = plot_spec(0,100,0,1,10,'N')
 
 
 
 #%% plotting im-freq plot
 a,b = plot_spec(0,10,0,4,4,'F')
 
-
+#%%
+plot_spec(0,10,0,4,4,'fz')
 
 
 
