@@ -4,11 +4,7 @@ Created on Tue Jul 12 17:13:26 2022
 
 @author: pokey
 
-For calculating the impedance of the equivelent circuit of the perovsite.
-
-Might also give the separate current for the ionic and electronic part.
-
-
+this revising2 file focus on how to make the fit function work.
 
 
 """
@@ -132,9 +128,9 @@ def func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):                   
     z = find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V)
     return np.hstack([z.real, z.imag])
 
-def fit(wlist, zrlist, zilist, Vb):                          #returns the fitting parameters                                                                 
-    Zlist = np.hstack([zrlist, -zilist])                                                                                                                    #10,10,4,4,10, 1,1,0
-    popt, pcov = curve_fit(lambda w,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init: func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist, p0 = [1,1,4,4,1, 1,1,0],)
+def fit(wlist, zrlist, zilist,  R_i,C_g, C_c, J_s, n, q_init,Vb):                          #returns the fitting parameters          #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                                          
+    Zlist = np.hstack([zrlist, -zilist])                                                                                         #10,10,4
+    popt, pcov = curve_fit(lambda w,  C_a,C_b: func_imp(w, C_a,C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist,p0 = [1000,10], maxfev = 10000000)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
     #try changing to different inital guess
     #popt, pcov = curve_fit(lambda w,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init: func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist, p0 = [1,1,4,4,1, 1,1,0],)
     return popt, pcov
@@ -171,8 +167,8 @@ def fit(wlist, zrlist, zilist, Vb):                          #returns the fittin
 #this is for a revised function(also fitting vb)
 
 
-def plot_fit(wlist, popt, zrlist, zilist,vb): 
-    zfit = func_imp(wlist, *popt,vb)
+def plot_fit(wlist, popt, zrlist, zilist,   R_i,C_g, C_c, J_s, n,  q_init,vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    zfit = func_imp(wlist, *popt,  R_i,C_g, C_c, J_s, n,  q_init,vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     zfit_r = zfit[0: len(wlist)]
     zfit_i = zfit[len(wlist): 2 * len(wlist)]
     fig = plt.figure()
@@ -192,27 +188,27 @@ def plot_fit(wlist, popt, zrlist, zilist,vb):
     plt.title("Nyquist ")
     
     
-def main(wlist, zrlist, zilist, vb):
-    popt, pcov = fit(wlist, zrlist, zilist,vb)
-    plot_fit(wlist, popt, zrlist, zilist,vb)
+def main(wlist, zrlist, zilist,  R_i, C_g, C_c, J_s, n,  q_init,vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    popt, pcov = fit(wlist, zrlist, zilist, R_i,C_g, C_c, J_s, n,  q_init,vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    plot_fit(wlist, popt, zrlist, zilist, R_i, C_g, C_c, J_s, n,  q_init,vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     print('the fitted parameters are', *popt)
     return popt, pcov
 
     
-main(wlist, zrlist, zilist, 2)
+main(wlist, zrlist, zilist,4,4,10, 1,1,0,2)                               #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #%%
 #######################################################################
 #this part is for trying the fit
-popt, pcov = fit(wlist, zrlist, zilist, 2)
-zfit = []
-for w in wlist:
-    a = find_imp(w,*popt,2).real
-    print(a)
-    zfit.append(a)
-# zfit_r = zfit[0: len(wlist)]
-plt.plot(wlist, zrlist,'.')
-plt.plot(wlist, zfit,'r--')
-plt.xscale('log')
+# popt, pcov = fit(wlist, zrlist, zilist, 2)   
+# zfit = []
+# for w in wlist:
+#     a = find_imp(w,*popt,2).real
+#     print(a)
+#     zfit.append(a)
+# # zfit_r = zfit[0: len(wlist)]
+# plt.plot(wlist, zrlist,'.')
+# plt.plot(wlist, zfit,'r--')
+# plt.xscale('log')
 
 
 
