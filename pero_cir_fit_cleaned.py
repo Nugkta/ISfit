@@ -31,7 +31,7 @@ def Zcap(C , w):    #the impedance of a capacitor
 #R_i: the ionic resistence
 #V: the background voltage
 #w: the frequency of the perturbation
-#
+
 
 
 def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):  
@@ -124,6 +124,7 @@ plt.ylabel('magnitude of z')
 wlist, zrlist, zilist, fzlist = a, b, c, d
 
 #%% the previous steps generated set of data in wlist zilist and zrlist 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hightlighted the place to change with change of number of parameters to fit
 def func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):                   #the funtion used in the curve fit(only to return a stacked real/imaginary part)
     z = find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V)
     return np.hstack([z.real, z.imag])
@@ -134,38 +135,6 @@ def fit(wlist, zrlist, zilist,  R_i,C_g, C_c, J_s, n, q_init,Vb):               
     #try changing to different inital guess
     #popt, pcov = curve_fit(lambda w,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init: func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist, p0 = [1,1,4,4,1, 1,1,0],)
     return popt, pcov
-#%%
-# def plot_fit(wlist, popt, zrlist, zilist, vb): 
-#     zfit = func_imp(wlist, *popt, vb)
-#     zfit_r = zfit[0: len(wlist)]
-#     zfit_i = zfit[len(wlist): 2 * len(wlist)]
-#     fig = plt.figure()
-#     plt.subplot((221))                          #z_real vs. freq
-#     plt.xscale('log')
-#     plt.plot(wlist, zrlist,'.')
-#     plt.plot(wlist, zfit_r,'r--')
-#     plt.title("Z_real vs. freq")
-#     plt.subplot((222))                      #z_image vs. freq
-#     plt.xscale('log')
-#     plt.plot(wlist, zilist,'.')
-#     plt.plot(wlist, -zfit_i,'r--')      #negative the fitted z_imag for Nyquist plot
-#     plt.title("Z_imag vs. freq")
-#     fig.add_subplot(2, 2, (3, 4))           #z_real vs. z_imag
-#     plt.plot(zrlist,zilist,'.')
-#     plt.plot(zfit_r, -zfit_i,'r--')
-#     plt.title("Nyquist ")
-    
-    
-# def main(wlist, zrlist, zilist, vb):
-#     popt, pcov = fit(wlist, zrlist, zilist,vb)
-#     plot_fit(wlist, popt, zrlist, zilist, vb)
-#     print('the fit parameters are', *popt)
-#     return popt, pcov
-
-
-#######################################################################################################################
-#this is for a revised function(also fitting vb)
-
 
 def plot_fit(wlist, popt, zrlist, zilist,   R_i,C_g, C_c, J_s, n,  q_init,vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     zfit = func_imp(wlist, *popt,  R_i,C_g, C_c, J_s, n,  q_init,vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -196,23 +165,6 @@ def main(wlist, zrlist, zilist,  R_i, C_g, C_c, J_s, n,  q_init,vb):   #!!!!!!!!
 
     
 main(wlist, zrlist, zilist,4,4,10, 1,1,0,2)                               #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#%%
-#######################################################################
-#this part is for trying the fit
-# popt, pcov = fit(wlist, zrlist, zilist, 2)   
-# zfit = []
-# for w in wlist:
-#     a = find_imp(w,*popt,2).real
-#     print(a)
-#     zfit.append(a)
-# # zfit_r = zfit[0: len(wlist)]
-# plt.plot(wlist, zrlist,'.')
-# plt.plot(wlist, zfit,'r--')
-# plt.xscale('log')
-
-
-
-
 
 
 
