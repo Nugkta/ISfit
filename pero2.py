@@ -4,9 +4,10 @@ Created on Tue Jul 12 17:13:26 2022
 
 @author: pokey
 
-this revising2 file focus on how to make the fit function work.
-
-
+the pero is after the new understanding of v1 and Z_e.
+-v1 directly obtained from the ratio impedance .
+-Z_elec is obtained by differentiating the J's first term .
+removed C_c for simplicity.
 """
 
 import numpy as np
@@ -34,39 +35,19 @@ def Zcap(C , w):    #the impedance of a capacitor
 
 
 
-def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):  
-    q_init = q_init 
-##########################################################################################    
-#This part tried to use the ODE to solve for the V1
-    #F = lambda t, Q: (V - Q/C_a - Q/C_b - Q/C_c)/R_i      #the ODE of the ionic branch
-    #runtime = 1000
-    #now solve for Q
-    # t_eval = np.arange(0, runtime, 0.1)                      #times at which store in solution
-    # sol = solve_ivp(F, [0, runtime], [q_init], t_eval=t_eval)     #approximate the solution in interval [0, 10], initial value of q
-    #print('the q is', sol.y[0][-1])
-    #v1 = V - sol.y[0][-1]/C_a  #the voltage connecting to thetransistor
-    #v1 = 2
-##########################################################################################
-#This part give V directly by assuming the charge on the three capacitance are equal 
-    print('V is ----', V)
-    Q = V/(1/C_a + 1/C_b + 1/C_c)
-    print('Q is ----', Q)
-    v1 = V - Q/C_a
-    print('v1 is ----',v1)
-#######################################################################################
-#this part used the Z_elct from the Matlab code (with a change Cion---C_g)
-    J1 = J_s*(np.exp((v1-0)/VT) - np.exp((v1 - V)/VT))
-    Z_elct = 1./(1/2*(2 - 1./(1 + 1j*w*R_i*C_g/2))*J1/VT)
-#######################################################################################
-#######################################################################################
-#This part uses the Z_elect by my own derivation
-    # J1 = J_s*(np.exp(q*(v1)/(n*k*T)) - np.exp(q*(v1 - V)/(n*k*T))) #finding J_1by using the property of thransistor    
-    # p_part = (v1-V)*q/(n*k*T)
-    # print('ppart is -----', p_part)
-    # Z_elct = 1/(J_s*(q/(n*k*T))*np.exp(p_part)) #finding the impedance of the electronic branch by differentiating dJ/dv
-#######################################################################################   
+def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, V):  
     Z_d = 1 / (1/Zcap(C_g,w) + 1/R_i)
     Z_ion = (Zcap(C_a,w) + Zcap(C_b,w) + Zcap(C_c,w) + Z_d)
+    v1 = V * (1 - 1 / (1j * w * C_a * Z_ion))
+    print('v1 is ----', v1)
+    # Q = V/(1/C_a + 1/C_b + 1/C_c)
+    # print('Q is ----', Q)
+    # v1 = V - Q/C_a
+    # print('v1 is ----',v1)
+#######################################################################################
+#this part used the Z_elct from the Matlab code (with a change Cion---C_g)
+    J1 = J_s*(np.exp((v1-0)/VT))      # - np.exp((v1 - V)/VT))
+    Z_elct = 1./(1/2*(2 - 1./(1 + 1j*w*Z_ion*C_a/2))*J1/VT)  # different from the matlab version Rion----Zion Cg----C1. proly because the matlab used a different circuit
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     print('Z_ i is---------',Z_ion)
     print("z_elct is -----", Z_elct)
@@ -74,7 +55,7 @@ def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):
 
 
 
-def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init, V):
+def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V):
     wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
     zrlist = []                                 #reference Note section 1
     zilist = []
@@ -83,7 +64,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init, V):
     for w in wlist:
         j+=1
         #print('the parameters are',w, C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init)
-        z = find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, q_init, V)
+        z = find_imp(w, C_a, C_b, R_i, C_g, J_s, n, q_init, V)
         zrlist.append(z.real)
         print(z.real)
         zilist.append(-z.imag)                    # use positive zimag to keep image in first quadrant
@@ -94,7 +75,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init, V):
 #%%
 #a, b, c, d= find_implist(1e-4, 10., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
 
-a, b, c, d= find_implist(0.001, 10, 10,10,4,4,10, 1,1,0,2)
+a, b, c, d= find_implist(0.001, 10, 10,10,4,10, 1,1,0,2)
 #a, b, c, d= find_implist(0.001, 5, 17,15,6,6, 10, 16,31,4,2)
 
 
