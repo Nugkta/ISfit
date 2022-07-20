@@ -55,7 +55,7 @@ def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, V):
 
 
 
-def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V):
+def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g, C_c, J_s, n,  V):
     wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
     zrlist = []                                 #reference Note section 1
     zilist = []
@@ -64,7 +64,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V):
     for w in wlist:
         j+=1
         #print('the parameters are',w, C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init)
-        z = find_imp(w, C_a, C_b, R_i, C_g, J_s, n, q_init, V)
+        z = find_imp(w, C_a, C_b, R_i, C_g,C_c, J_s, n, V)
         zrlist.append(z.real)
         print(z.real)
         zilist.append(-z.imag)                    # use positive zimag to keep image in first quadrant
@@ -75,7 +75,8 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V):
 #%%
 #a, b, c, d= find_implist(1e-4, 10., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
 
-a, b, c, d= find_implist(0.001, 10, 10,10,4,10, 1,1,0,2)
+#a, b, c, d= find_implist(0.001, 10, 10,10,4,10, 1,1,2,5)
+a, b, c, d= find_implist(0.001, 10, 10,1,4,10, 10,1,2,5)
 #a, b, c, d= find_implist(0.001, 5, 17,15,6,6, 10, 16,31,4,2)
 
 
