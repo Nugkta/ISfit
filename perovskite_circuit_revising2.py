@@ -196,6 +196,7 @@ def main(wlist, zrlist, zilist,  R_i, C_g, C_c, J_s, n,  q_init,vb):   #!!!!!!!!
 
     
 main(wlist, zrlist, zilist,4,4,10, 1,1,0,2)                               #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #%%
 #######################################################################
 #this part is for trying the fit
