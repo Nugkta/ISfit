@@ -35,29 +35,34 @@ def Zcap(C , w):    #the impedance of a capacitor
 
 
 
-def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, V):  
-    Z_d = 1 / (Zcap(C_g,w) + 1/R_i)
+def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n, V, Vb):  
+    Z_d = 1 / (1/Zcap(C_g,w) + 1/R_i)
     Z_ion = (Zcap(C_a,w) + Zcap(C_b,w) + Z_d)
-    v1 = V * (1 - 1 / (1j * w * C_a * Z_ion))
+    v1_w = V * (1 - 1 / (1j * w * C_a * Z_ion))
+    vb_a = Vb * 1/(C_a**(-1) + C_b**(-1) + C_g**(-1))/C_a
+    vb1 = Vb-vb_a
+    v1= v1_w + vb1
     #print('v1 is ----', v1)
     # Q = V/(1/C_a + 1/C_b + 1/C_c)
     # print('Q is ----', Q)
     # v1 = V - Q/C_a
-    # print('v1 is ----',v1)
+    #print('v1 is ----',v1)
+    #print('v1w is ----',v1_w)
+    #print('vb1 is ----',vb1)
 #######################################################################################
 #this part used the Z_elct from the Matlab code (with a change Cion---C_g)
     J1 = J_s*(np.exp((v1-0)/VT))      # - np.exp((v1 - V)/VT))
-    #print('J1 is-----', J1)
+    print('J1 is-----', J1)
     Z_elct = 1./(1/2*(2 - 1./(1 + 1j*w*Z_ion*C_a/2))*J1/VT)  # different from the matlab version Rion----Zion Cg----C1. proly because the matlab used a different circuit
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     #print('Z_ i is---------',Z_ion)
-    #print("z_elct is -----", Z_elct)
-    return Z_ion
+    print("z_elct is -----", Z_elct)
+    return Z_elct
 
 
-
-def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V):
-    wlist = np.logspace(w_h, w_l, 10000)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
+def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V ,Vb):
+    #wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
+    wlist = np.logspace(w_h, w_l, 1000)
     zrlist = []                                 #reference Note section 1
     zilist = []
     fzlist = []
@@ -65,7 +70,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V):
     for w in wlist:
         j+=1
         #print('the parameters are',w, C_a, C_b, R_i, C_g, C_c, J_s, n, V, q_init)
-        z = find_imp(w, C_a, C_b, R_i, C_g, J_s, n, q_init, V)
+        z = find_imp(w, C_a, C_b, R_i, C_g, J_s, n, q_init, V, Vb)
         zrlist.append(z.real)
         #print(z.real)
         zilist.append(-z.imag)                    # use positive zimag to keep image in first quadrant
@@ -77,7 +82,10 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V):
 #a, b, c, d= find_implist(1e-4, 10., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
                         #(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, q_init, V)
 #a, b, c, d= find_implist(0.001, 10, 10,10,4,10, 1,1,0,2)
-a, b, c, d= find_implist(0.001, 1000, 1000,1000,4,10, 2,10,0,2)
+#a, b, c, d= find_implist(-3, 3, 10,3,4,10, 1,1,0,2)
+#a, b, c, d= find_implist(-2,3, 1000,1000,4,10, 2,10,0,2,10)
+#a, b, c, d= find_implist(-3,3, 1000,1000,4,10, 2,10,0,2,10)
+a, b, c, d= find_implist(-3,3, 10,10,4,10, 2,10,10,2,0)
 #a, b, c, d= find_implist(0.001, 5, 17,15,6,6, 10, 16,31,4,2)
 
 
