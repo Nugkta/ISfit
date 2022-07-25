@@ -36,15 +36,16 @@ def Zcap(C , w):    #the impedance of a capacitor
 
 
 def find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):  
-    Z_d = 1 / (1/Zcap(C_g,w) + 1/R_i)    #the small chunk of cg and rion
-    Z_ion = (Zcap(C_a,w) + Zcap(C_b,w) + Z_d) #the impedance of the ionic branch
-    v1_w = V * (1 - Zcap(C_a , w)/ Z_ion) #the v1 contributed by the perturbation voltage
-    Q = Vb * 1/(C_a**(-1) + C_b**(-1) + C_g**(-1))
-    vb_a = Q/C_a #the potential difference across c_a
-    vb1 = Vb-vb_a #the part of v1 contributed by the background voltage
-    #v1= v1_w  
+    #Z_d = 1 / (1/Zcap(C_g,w) + 1/R_i)    #the small chunk of cg and rion
+    Z_ion = 1/(1j*w*C_g + 1j*w*(C_a/2 - C_g)/(1 + 1j*w*R_i*C_a/2))
+    #Z_ion = (Zcap(C_a,w) + Zcap(C_b,w) + R_i) #the impedance of the ionic branch
+    #v1_w = V * (1 - Zcap(C_a , w)/ Z_ion) #the v1 contributed by the perturbation voltage
+    # Q = Vb * 1/(C_a**(-1) + C_b**(-1) + C_g**(-1))
+    # vb_a = Q/C_a #the potential difference across c_a
+    # vb1 = Vb-vb_a #the part of v1 contributed by the background voltage
+    # #v1= v1_w  
     #v1= v1_w + vb1
-    v1= vb1
+    v1= 0.5 * Vb
     #print('v1 is ----', v1)
     # Q = V/(1/C_a + 1/C_b + 1/C_c)
     # print('Q is ----', Q)
@@ -55,16 +56,19 @@ def find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):
 #######################################################################################
 #this part used the Z_elct from the Matlab code (with a change Cion---C_g)
     J1 = J_s*(np.exp((v1-0)/VT))      # - np.exp((v1 - V)/VT))
+    #J1 = J_s*(np.exp((v1 - 0)/VT) - np.exp((v1 - V)/VT))
     print('v1 is ',v1)
     print('J1 is-----', J1)
     djdv = (1 - Zcap(C_a , w)/ Z_ion)*J1/VT #note this dv only concerns the perturbation part's contribution
+    #Z1 = 1/(1/2*(2 - 1/(1 + 1j*w*R_i*C_a/2))*J1/VT)
+    #Z_elct = Z1
     Z_elct = 1/djdv
-    #Z_elct = 1./(1/2*(2 - 1./(1 + 1j*w*Z_ion*C_a/2))*J1/VT)  # different from the matlab version proly because the matlab used a different circuit
+    #Z_elct = 1./(1/2*(2 - 1./(1 + 1j*w*R_i*C_a/2))*J1/VT)  # different from the matlab version proly because the matlab used a different circuit
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     #print('Z_ i is---------',Z_ion)
     print("z_elct is -----", Z_elct)
     #return Z_tot
-    return Z_elct
+    return Z_tot
 
 def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
     #wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
@@ -85,6 +89,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
     return np.array(wlist), np.array(zrlist), np.array(zilist), fzlist
 
 
+
 #%%
 #the parameters giving negative impedance
 #a, b, c, d= find_implist(-3, 3, 10,3,10, 1,1,0,2,0)
@@ -93,11 +98,12 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
 #a, b, c, d= find_implist(-2, 2, 1,1,1, 1,1,1,1,.1)
 
 # realistic parameters
+a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.5)
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 1)
                         #(w_h, w_l,  C_a, C_b,      R_i, C_g,       J_s,      n, V ,Vb)
 
 #when no background voltage, Z_elct should be really big
-a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 5)
+#a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.5)
 
 
 
