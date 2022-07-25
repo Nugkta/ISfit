@@ -88,10 +88,14 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
 #a, b, c, d= find_implist(-3, 3, 10,3,10, 1,1,0,2,0)
 #a, b, c, d= find_implist(-3, 3, 10,3,10, 1,1,0,2,10)
 #a, b, c, d= find_implist(-3, 3, 10,3,10, 1,1,1.93,2,10)
+
+
 # realistic parameters
-a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 1)
+#a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 1)
                         #(w_h, w_l,  C_a, C_b,      R_i, C_g,       J_s,      n, V ,Vb)
 
+#when no background voltage, Z_elct should be really big
+a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0)
 
 #a, b, c, d= find_implist(1e-4, 10., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
 #a, b, c, d= find_implist(0.001, 10, 10,10,4,10, 1,1,2,5)
