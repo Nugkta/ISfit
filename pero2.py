@@ -39,7 +39,7 @@ def find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):
     Z_d = 1 / (1/Zcap(C_g,w) + 1/R_i)    #the small chunk of cg and rion
     Z_ion = (Zcap(C_a,w) + Zcap(C_b,w) + Z_d) #the impedance of the ionic branch
     #Z_ion = 1/(1j*w*C_g + 1j*w*(C_a/2 - C_g)/(1 + 1j*w*R_i*C_a/2))#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    print('Z_ion is -----', Z_ion)
+    #print('Z_ion is -----', Z_ion)
     #print('Z_ion 2 is ----',Z_ion2)
     v1_w = V * (1 - Zcap(C_a , w)/ Z_ion) #the v1 contributed by the perturbation voltage
     Q = Vb * 1/(C_a**(-1) + C_b**(-1) + C_g**(-1))
@@ -62,14 +62,15 @@ def find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):
     #print('v1 is ',v1)
     #print('J1 is-----', J1)
     djdv = (1 - Zcap(C_a , w)/ Z_ion)*J1/VT #note this dv only concerns the perturbation part's contribution
-    Z_elct = 1/djdv
+    Z_elct = 1/djdv -2000j
     #Z_elct = 1./(1/2*(2 - 1./(1 + 1j*w*Z_ion*C_a/2))*J1/VT)  # different from the matlab version proly because the matlab used a different circuit
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     #print('Z_ i is---------',Z_ion)
-    print("z_elct is -----", Z_elct)
-    print('z_tot is ------', Z_tot)
+    # print("z_elct is -----", Z_elct)
+    # print('z_tot is ------', Z_tot)
+    print('their difference is', Z_tot - Z_elct)
     #return Z_tot
-    return Z_elct
+    return Z_tot
 
 def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
     #wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
@@ -101,7 +102,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 1)
                         #(w_h, w_l,  C_a, C_b,      R_i, C_g,       J_s,      n, V ,Vb)
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.2)
-a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.1)
+a, b, c, d= find_implist(-3,    6,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
 #when no background voltage, Z_elct should be really big
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 5)
 
