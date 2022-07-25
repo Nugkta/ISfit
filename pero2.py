@@ -136,19 +136,19 @@ wlist, zrlist, zilist, fzlist = a, b, c, d
 
 #%% the previous steps generated set of data in wlist zilist and zrlist 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hightlighted the place to change with change of number of parameters to fit
-def func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):                   #the funtion used in the curve fit(only to return a stacked real/imaginary part)
-    z = find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V)
+def func_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):                   #the funtion used in the curve fit(only to return a stacked real/imaginary part)
+    z = find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb)
     return np.hstack([z.real, z.imag])
 
-def fit(wlist, zrlist, zilist,  R_i,C_g, C_c, J_s, n, q_init,Vb):                          #returns the fitting parameters          #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                                          
+def fit(wlist, zrlist, zilist,  R_i, C_g, J_s, n, V, Vb):                          #returns the fitting parameters          #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                                          
     Zlist = np.hstack([zrlist, -zilist])                                                                                         #10,10,4
-    popt, pcov = curve_fit(lambda w,  C_a,C_b: func_imp(w, C_a,C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist,p0 = [10,8], maxfev = 10000000)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
+    popt, pcov = curve_fit(lambda w,  C_a,C_b: func_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb) , wlist, Zlist,p0 = [10e-7,10e-7], maxfev = 10000000)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
     #try changing to different inital guess
     #popt, pcov = curve_fit(lambda w,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init: func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist, p0 = [1,1,4,4,1, 1,1,0],)
     return popt, pcov
 
-def plot_fit(wlist, popt, zrlist, zilist,   R_i,C_g, C_c, J_s, n,  q_init,vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    zfit = func_imp(wlist, *popt,  R_i,C_g, C_c, J_s, n,  q_init,vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+def plot_fit(wlist, popt, zrlist, zilist, R_i, C_g, J_s, n, V, Vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    zfit = func_imp(wlist, *popt,  R_i, C_g, J_s, n, V, Vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     zfit_r = zfit[0: len(wlist)]
     zfit_i = zfit[len(wlist): 2 * len(wlist)]
     fig = plt.figure()
@@ -168,14 +168,14 @@ def plot_fit(wlist, popt, zrlist, zilist,   R_i,C_g, C_c, J_s, n,  q_init,vb):  
     plt.title("Nyquist ")
     
     
-def main(wlist, zrlist, zilist,  R_i, C_g, C_c, J_s, n,  q_init,vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    popt, pcov = fit(wlist, zrlist, zilist, R_i,C_g, C_c, J_s, n,  q_init,vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    plot_fit(wlist, popt, zrlist, zilist, R_i, C_g, C_c, J_s, n,  q_init,vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+def main(wlist, zrlist, zilist,  R_i, C_g, J_s, n, V, Vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    popt, pcov = fit(wlist, zrlist, zilist, R_i, C_g, J_s, n, V, Vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    plot_fit(wlist, popt, zrlist, zilist, R_i, C_g, J_s, n, V, Vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     print('the fitted parameters are', *popt)
     return popt, pcov
 
     
-main(wlist, zrlist, zilist,4,4,10, 1,1,0,2)                               #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+main(wlist, zrlist, zilist, 3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0)                               #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
