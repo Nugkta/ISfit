@@ -66,10 +66,10 @@ def find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):
     #Z_elct = 1./(1/2*(2 - 1./(1 + 1j*w*Z_ion*C_a/2))*J1/VT)  # different from the matlab version proly because the matlab used a different circuit
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     #print('Z_ i is---------',Z_ion)
-    #print("z_elct is -----", Z_elct)
-    #print('z_tot is ------', Z_tot)
+    print("z_elct is -----", Z_elct)
+    print('z_tot is ------', Z_tot)
     #return Z_tot
-    return Z_tot
+    return Z_elct
 
 def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
     #wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
@@ -100,7 +100,8 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
 # realistic parameters
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 1)
                         #(w_h, w_l,  C_a, C_b,      R_i, C_g,       J_s,      n, V ,Vb)
-a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.2)
+#a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.2)
+a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.1)
 #when no background voltage, Z_elct should be really big
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 5)
 
