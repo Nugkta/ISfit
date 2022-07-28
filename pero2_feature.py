@@ -19,6 +19,7 @@ q = 1.6e-19     #charge of electron
 k = 1.38e-23    #boltzmann constant
 T = 300     #room temperature
 VT = 0.026
+n = 1.93
 
 def Zcap(C , w):    #the impedance of a capacitor
     return 1/(1j * w * C)
@@ -67,15 +68,19 @@ def find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     #print('Z_ i is---------',Z_ion)
     # print("z_elct is -----", Z_elct)
-    # print('z_tot is ------', Z_tot)
+    #print('z_tot is ------', Z_tot)
     #print('their difference is', Z_tot - Z_elct)
     #return Z_tot
     return Z_tot
 
 def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
     #wlist = np.arange(w_h, w_l, 1e-3)        #first resistence, second resistance, capacitance, type of plot(Nyquist or freqency)
+    Q = Vb * 1/(C_a**(-1) + C_b**(-1) + C_g**(-1))
+    vb_a = Q/C_a 
+    vb1 = Vb-vb_a 
+    v1= vb1  
+    J1 = J_s*(np.exp((v1-0)/VT))      
     wlist = np.logspace(w_h, w_l, 1000)
-
     zrlist = []                                 #reference Note section 1
     zilist = []
     fzlist = []
@@ -88,7 +93,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
         #print(z.real)
         zilist.append(-z.imag)                    # use positive zimag to keep image in first quadrant
         fzlist.append((1/z).imag / w)           #fzlist is the effective capacitance term in the Bode plot y axis
-    return np.array(wlist), np.array(zrlist), np.array(zilist), fzlist
+    return np.array(wlist), np.array(zrlist), np.array(zilist), fzlist, J1
 
 
 #%%
@@ -98,7 +103,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
                         #(w_h, w_l,  C_a, C_b,      R_i, C_g,       J_s,      n, V ,Vb)
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.2)
 #a, b, c, d= find_implist(-3,    6,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
-a, b, c, d= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
+a, b, c, d, J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
 #when no background voltage, Z_elct should be really big
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 5)
 
@@ -136,7 +141,7 @@ print(c_eff)
 #C_eff ~= start of 0V capacitance curve as expected.
 
 #%% investigaitng the feature of the Nyquist plots
-a, b, c, d= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
+a, b, c, d ,J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
 plt.plot(b,c,'.')
 plt.title('Nyquist plot')
 plt.xlabel('z_real')
@@ -200,11 +205,51 @@ print(find_top(zizr))
 
 
 
+#%%
+C_a = 2.6e-7
+C_b = C_a 
+a, b, c, d ,J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
+r_reci = n * k * T /q/ J1 #impedance for infinite frequency
+r_rec0 = n *k * T /q/J1 * 2
+
+print(r_reci)
+print(r_rec0)
+
 
 
 #%%
-dic = {}
-dic['asd'] = 0
+wlist = a
+zrlist = c
+zilist = b
+zizr2 = np.empty([0,3])
+for n in range (0, len(b)):
+    zizr2 = np.concatenate((zizr2,np.array([[zilist[n], zrlist[n], wlist[n]]])))
+#dict(sorted(zizr.items()))
+zizr2 = np.sort(zizr2, axis =-1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
