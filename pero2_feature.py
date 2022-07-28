@@ -140,7 +140,7 @@ print(c_eff)
 
 #C_eff ~= start of 0V capacitance curve as expected.
 
-#%% investigaitng the feature of the Nyquist plots
+#%% investigaitng the feature of the two curve Nyquist plots
 a, b, c, d ,J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
 plt.plot(b,c,'.')
 plt.title('Nyquist plot')
@@ -209,6 +209,7 @@ print(find_top(zizr))
 #%%
 C_a = 2.6e-7
 C_b = C_a 
+R_i = 2e6
 a, b, c, d ,J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
 r_reci = n * k * T /q/ J1 #impedance for infinite frequency
 r_rec0 = n *k * T /q/J1 * 2
@@ -226,21 +227,31 @@ zizr2 = np.empty([0,3])
 for n in range (0, len(b)):
     zizr2 = np.concatenate((zizr2,np.array([[zilist[n], zrlist[n], wlist[n]]])))
 #dict(sorted(zizr.items()))
-zizr2 = np.sort(zizr2, axis =-1)
+zizr2 = zizr2[zizr2[:,1].argsort()][::-1]
+
+wlist = []
+tlist = []
+for i in nlist:
+    tlist.append( 1/zizr2[i][2])
+    wlist.append(zizr2[i][2])
+
+print('wlist is',wlist)
+print('tlist is', tlist)
+t1 = r_reci *C_a/2
+t2 = R_i * C_a 
+
+print('t0,t infinity =',t2, t1)
 
 
 
 
+#%%
 
-
-
-
-
-
-
-
-
-
+a, b, c, d ,J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
+plt.plot(b,c,'.')
+plt.title('Nyquist plot')
+plt.xlabel('z_real')
+plt.ylabel('z_imag')
 
 
 
