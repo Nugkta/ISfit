@@ -92,11 +92,6 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
 
 
 #%%
-#the parameters giving negative impedance
-#a, b, c, d= find_implist(-3, 3, 10,3,10, 1,1,0,2,0)
-#a, b, c, d= find_implist(-3, 3, 10,3,10, 1,1,0,2,10)
-#a, b, c, d= find_implist(-3, 3, 10,3,10, 1,1,1.93,2,10)
-#a, b, c, d= find_implist(-2, 2, 1,1,1, 1,1,1,1,.1)
 
 # realistic parameters
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 1)
@@ -106,24 +101,6 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
 a, b, c, d= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
 #when no background voltage, Z_elct should be really big
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 5)
-
-
-
-
-
-
-
-#a, b, c, d= find_implist(1e-4, 10., 1., 1., 1., 1., 1., 1., 1., 1., 0)  
-#a, b, c, d= find_implist(0.001, 10, 10,10,4,10, 1,1,2,5)
-#a, b, c, d= find_implist(0.001, 10, 10,1,4,10, 10,1,2,5)
-                        #(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb)
-#a, b, c, d= find_implist(0.001, 10, 10,10,4,10, 1,1,0,2)
-#a, b, c, d= find_implist(-3, 3, 10,3,4,10, 1,1,2,2) 
-#a, b, c, d= find_implist(-2,3, 1000,1000,4,10, 2,10,0,2,10)
-#a, b, c, d= find_implist(-3,3, 1000,1000,4,10, 2,10,0,2)
-#a, b, c, d= find_implist(-3,3, 10,10,4,10, 2,10,10,2,0)
-#a, b, c, d= find_implist(0.001, 5, 17,15,6,6, 10, 16,31,4,2)
-
 
 
 
@@ -140,85 +117,94 @@ plt.legend(['z_real','z_imag'])
 plt.xlabel('frequency')
 plt.ylabel('magnitude of z')
 
+#%% investigating the features of effective capacitance plot
+a, b, c, d= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
+plt.plot(a, d)
+plt.xscale('log')
+
+a2, b2, c2, d2= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0)
+plt.plot(a2, d2)
+plt.xscale('log')
+plt.yscale('log')
+plt.title('effective capacitance plot')
+
+print(d2[1])
+c_eff = 1/(2 / 2.6e-7 + 2.8e-8)
+print(c_eff)
+
+
+#C_eff ~= start of 0V capacitance curve as expected.
+
+#%% investigaitng the feature of the Nyquist plots
+a, b, c, d= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
+plt.plot(b,c,'.')
+plt.title('Nyquist plot')
+plt.xlabel('z_real')
+plt.ylabel('z_imag')
+
+zrlist = c
+zilist = b
+
+
+#zizr = np.array([[0,0]])
+zizr = np.empty([0,2])
+for n in range (0, len(b)):
+    zizr = np.concatenate((zizr,np.array([[zilist[n], zrlist[n]]])))
+#dict(sorted(zizr.items()))
+zizr = np.sort(zizr, axis = 1)
+
+
+
+
+def find_top(zizr):
+    n = 999
+    vlist = [] #points of local maximum
+    nlist = [] #index of local maximum
+    nllist = [] #points of local minimum
+    while n >1:
+        if zizr[n][0] > zizr[n-1][0]:
+            vlist.append(zizr[n][1])
+            nlist.append(n)
+            print('break')
+            break
+        n -= 1
+        print(n)
+    while n >1:
+        print(n)
+        print(zilist[n] , zilist[n-1])
+        print(n)
+        if zizr[n][0] < zizr[n-1][0]:
+            print('change')
+            nllist.append(n)
+            break 
+        n -= 1
+        
+        #print(n)
+    while n >1:
+        if zizr[n][0] > zizr[n-1][0]:
+            vlist.append(zizr[n][1])
+            print('change back')
+            nlist.append(n)
+            break
+        n -= 1
+        # print(n)
+    return vlist,nlist,nllist
+
+
+vlist, nlist, nllist = find_top(zizr)
+
+for i in range (0,len(nlist)):
+    plt.plot(zizr[nlist[i]][1], zizr[nlist[i]][0],'r.')
+
+print(find_top(zizr))
+
 
 
 
 
 #%%
-#b = find_imp(10., 1., 1., 1., 1., 1., 1., 1., 1., 0)
-#b = find_imp(1e-4, 1e-4,1e-4,4,4,1e-4,1e-4, 1,5,1)
-
-wlist, zrlist, zilist, fzlist = a, b, c, d
-
-#%% the previous steps generated set of data in wlist zilist and zrlist 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hightlighted the place to change with change of number of parameters to fit
-def func_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):                   #the funtion used in the curve fit(only to return a stacked real/imaginary part)
-    z = find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb)
-    return np.hstack([z.real, z.imag])
-
-def fit(wlist, zrlist, zilist,  R_i, C_g, J_s, n, V, Vb):                          #returns the fitting parameters          #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                                          
-    Zlist = np.hstack([zrlist, -zilist])                                                                                         #10,10,4
-    #popt, pcov = curve_fit(lambda w,  C_a,C_b: func_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb) , wlist, Zlist,p0 = [10e-7,10e-7], maxfev = 10000000)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
-    #try changing to different inital guess
-    popt, pcov = curve_fit(lambda w,  C_a,C_b: func_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb) , wlist, Zlist,p0 = [1e-7,1e-7], maxfev = 10000000)
-    #popt, pcov = curve_fit(lambda w,  C_a,C_b: func_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb) , wlist, Zlist,p0 = None, maxfev = 10000000)
-    #popt, pcov = curve_fit(lambda w,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init: func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist, p0 = [1,1,4,4,1, 1,1,0],)
-    return popt, pcov
-
-def plot_fit(wlist, popt, zrlist, zilist, R_i, C_g, J_s, n, V, Vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    zfit = func_imp(wlist, *popt,  R_i, C_g, J_s, n, V, Vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    zfit_r = zfit[0: len(wlist)]
-    zfit_i = zfit[len(wlist): 2 * len(wlist)]
-    fig = plt.figure()
-    plt.subplot((221))                          #z_real vs. freq
-    plt.xscale('log')
-    plt.plot(wlist, zrlist,'.')
-    plt.plot(wlist, zfit_r,'r--')
-    plt.title("Z_real vs. freq")
-    plt.subplot((222))                      #z_image vs. freq
-    plt.xscale('log')
-    plt.plot(wlist, zilist,'.')
-    plt.plot(wlist, -zfit_i,'r--')      #negative the fitted z_imag for Nyquist plot
-    plt.title("Z_imag vs. freq")
-    fig.add_subplot(2, 2, (3, 4))           #z_real vs. z_imag
-    plt.plot(zrlist,zilist,'.')
-    plt.plot(zfit_r, -zfit_i,'r--')
-    plt.title("Nyquist ")
-    
-    
-def main(wlist, zrlist, zilist,  R_i, C_g, J_s, n, V, Vb):   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    popt, pcov = fit(wlist, zrlist, zilist, R_i, C_g, J_s, n, V, Vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    plot_fit(wlist, popt, zrlist, zilist, R_i, C_g, J_s, n, V, Vb)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    print('the fitted parameters are', *popt)
-    return popt, pcov
-
-    
-main(wlist, zrlist, zilist, 3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 2)                               #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+dic = {}
+dic['asd'] = 0
 
 
 
