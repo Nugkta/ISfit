@@ -43,11 +43,12 @@ def find_imp(w, C_a, C_b, R_i, C_g, J_s, n, V, Vb):
     #print('Z_ion is -----', Z_ion)
     #print('Z_ion 2 is ----',Z_ion2)
     v1_w = V * (1 - Zcap(C_a , w)/ Z_ion) #the v1 contributed by the perturbation voltage
-    Q = Vb * 1/(C_a**(-1) + C_b**(-1) + C_g**(-1))
-    vb_a = Q/C_a #the potential difference across c_a
-    vb1 = Vb-vb_a #the part of v1 contributed by the background voltage
+    # Q = Vb * 1/(C_a**(-1) + C_b**(-1) + C_g**(-1))
+    # vb_a = Q/C_a #the potential difference across c_a
+    # vb1 = Vb-vb_a #the part of v1 contributed by the background voltage
     #v1= v1_w  
     #v1= v1_w + vb1
+    vb1 = V * (C_a / (C_a +C_b))
     v1= vb1  #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     #v1 = 0.5 * Vb
     #print('v1 is ----', v1)
@@ -103,7 +104,7 @@ def find_implist(w_h, w_l,  C_a, C_b, R_i, C_g,  J_s, n, V ,Vb):
                         #(w_h, w_l,  C_a, C_b,      R_i, C_g,       J_s,      n, V ,Vb)
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0.2)
 #a, b, c, d= find_implist(-3,    6,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
-a, b, c, d, J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
+a, b, c, d, J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e8, 2.8e-8,  7.1e-11,  1.93, 2e-2, .5)
 #when no background voltage, Z_elct should be really big
 #a, b, c, d= find_implist(-3,    3,  2.6e-7,2.6e-7,  3.8e5, 2.8e-8,  7.1e-11,  1.93, 2e-2, 5)
 
@@ -123,11 +124,11 @@ plt.xlabel('frequency')
 plt.ylabel('magnitude of z')
 
 #%% investigating the features of effective capacitance plot
-a, b, c, d= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
-plt.plot(a, d)
+a, b, c, d,j1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 2)
+plt.plot(a, d,'r.')
 plt.xscale('log')
 
-a2, b2, c2, d2= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0)
+a2, b2, c2, d2,j1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0)
 plt.plot(a2, d2)
 plt.xscale('log')
 plt.yscale('log')
