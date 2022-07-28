@@ -147,8 +147,8 @@ plt.title('Nyquist plot')
 plt.xlabel('z_real')
 plt.ylabel('z_imag')
 
-zrlist = c
-zilist = b
+zrlist = b
+zilist = c
 
 
 #zizr = np.array([[0,0]])
@@ -156,8 +156,9 @@ zizr = np.empty([0,2])
 for n in range (0, len(b)):
     zizr = np.concatenate((zizr,np.array([[zilist[n], zrlist[n]]])))
 #dict(sorted(zizr.items()))
-zizr = np.sort(zizr, axis = 1)
-
+zizr0 = zizr
+#zizr = np.sort(zizr, axis = 1)
+zizr1 = zizr[zizr[:,1].argsort()[::-1]]
 
 
 
@@ -219,8 +220,8 @@ print(r_rec0)
 
 #%%
 wlist = a
-zrlist = c
-zilist = b
+zrlist = b
+zilist = c
 zizr2 = np.empty([0,3])
 for n in range (0, len(b)):
     zizr2 = np.concatenate((zizr2,np.array([[zilist[n], zrlist[n], wlist[n]]])))
