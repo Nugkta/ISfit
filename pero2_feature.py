@@ -266,7 +266,7 @@ print('tlist is', tlist)
 t1 = r_reci *C_a/2
 t2 = R_i * C_a 
 
-print('t0,t infinity =',t2, t1)
+print('t infinity, t0 =',t1, t2)
 
 
 
