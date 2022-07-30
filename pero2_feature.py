@@ -258,6 +258,7 @@ zizr2 = zizr2[zizr2[:,1].argsort()][::-1]
 wlist = []
 tlist = []
 for i in nlist:
+    print('the ns are', i)
     tlist.append( 1/zizr2[i][2])   #the time constant t = w^-1
     wlist.append(zizr2[i][2])       # the frequency
 
@@ -273,7 +274,7 @@ print('t infinity, t0 =',t1, t2)
 
 #%%
 
-a, b, c, d ,J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, .32)
+a, b, c, d ,J1= find_implist(-4,    5,  2.6e-7,2.6e-7,  2e6, 2.8e-8,  7.1e-11,  1.93, 2e-2, 0)
 plt.plot(b,c,'.')
 plt.title('Nyquist plot')
 plt.xlabel('z_real')
