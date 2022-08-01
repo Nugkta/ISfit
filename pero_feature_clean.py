@@ -91,7 +91,7 @@ zlist, J1 = pero_model(w, C_a, C_b, R_i, C_g, J_s, nA, 0) # relation 2 is specif
 C_ap = (1 / zlist).imag / w
 C_eff = C_ap[0] #the C_eff extract from the plot
 
-C_eff_t = 1/(1/C_a + 1/C_b + 1/C_g) #the theoretical C_eff from the supposed relation
+C_eff_t = 1/(1/C_a + 1/C_b ) #the theoretical C_eff from the supposed relation
 C_sum = 1/(1/C_a + 1/C_b )
 print(C_eff, C_eff_t,'Here for some reason they are not equal. Need to be fixed!')
 
