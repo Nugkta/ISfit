@@ -24,11 +24,14 @@ c = np.stack((a,b), axis = -1)
 
 
 
+#%%
+from sympy import symbols, Eq, solve
+
+x = symbols('x')
+eq1 = Eq(2*x**2 + x + 1, 0)
 
 
-
-
-
+sol = solve(eq1)
 
 
 
