@@ -11,8 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from sympy import symbols, Eq, solve
+import pandas as pd
 #defining the constants and inputted parameters for testing
-VT = 0.026
+VT = 0.026 # = kT/q
 C_a = 2e-7
 C_b = 2e-7
 R_i = 5e8
@@ -20,7 +21,9 @@ Vb = .2
 C_g = 2.8e-8  
 J_s = 7.1e-11
 nA = 1.93
-
+q = 1.6e-19
+T = 300
+kb = 1.38e-23
 
 #%%
 
@@ -32,6 +35,7 @@ def pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb): #w is the list of frequency r
     Z_ion = (Zcap(C_a , w) + Zcap(C_b , w) + Z_d) #the impedance of the ionic branch
     v1 = Vb * (C_a / (C_a + C_b)) 
     J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - np.exp((v1 - Vb) / (n * VT))) #the current densitf of the electronic branch
+    #J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - 0)
     Jrec = J_s * np.exp(v1 / (n * VT))        #the recombination current and the generation current
     Jgen = J_s * np.exp((v1 - Vb) / (n * VT))
     A = Zcap(C_a , w)/ Z_ion
@@ -93,7 +97,7 @@ C_eff = C_ap[0] #the C_eff extract from the plot
 
 C_eff_t = 1/(1/C_a + 1/C_b ) #the theoretical C_eff from the supposed relation
 C_sum = 1/(1/C_a + 1/C_b )
-print(C_eff, C_eff_t,'Here for some reason they are not equal. Need to be fixed!')
+print(C_eff, C_eff_t)
 
 
 
@@ -207,7 +211,7 @@ wzlist = wzlist[wzlist[: , 1].real.argsort()]
 nhlist, nllist= find_extremum(wzlist)
 r_reci_e = wzlist[nllist[0]][1].real
 r_rec0_e = wzlist[-1][1].real
-k = r_rec0 / r_reci
+k = r_rec0_e / r_reci_e
 
 #Obtain w3, w4 in relation 3 and 4
 whlist = wzlist[nhlist][: , 0]
@@ -224,7 +228,7 @@ w7 = whlist_0[0]
 
 
 C_ap = (1 / zlist_0).imag / w
-C_eff_e = C_ap[0] #estimated C_eff
+C_eff_e = C_ap[0] #estimated C_eff  不是很对 这里应该是C_sum
 
 R_i_e = 1 / (C_eff_e * w7 -1/ r_reci_e)
 
@@ -257,6 +261,193 @@ print(R_i_e, R_i_t)
 
 
 
+#%% RETRY FINDING THE FIT PARAMETERS
+
+#First, generate a list of Impedance spectrum data of different Vb
+
+#might need to use dataframe here
+
+
+
+Vblist = np.linspace(0, 1, 20)
+w = np.logspace(-6 , 10 , 1000)
+Vb_z_list = np.empty([2 , 1000])
+Vb_wzjv_list = [] #the list of dataframes, each dataframe corresponds to a specific bias voltage
+for V in Vblist:
+    zlist, J1 = pero_model(w, C_a, C_b, R_i, C_g, J_s, nA, V)
+    wzlist = np.stack((w , zlist) , axis = -1)
+    wzlist = wzlist[wzlist[:, 1].real.argsort()]
+    vlist = np.ones(len(wzlist)) * V
+    jlist = np.ones(len(wzlist)) * J1
+    wz_v_jlist = np.column_stack((wzlist , vlist,jlist))
+    #v_wz_jlist = np.column_stack((v_))
+    df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
+    Vb_wzjv_list.append(df)
+   
+    
+###################### the sumulated data are generated and stored in Vb_wzlist   
+def find_k(dfs): #function for finding an appropriate k (ratio of C_a/(C_a +C_b) from a list of dataframes just like above
+    klist = []
+    for df in dfs:
+        zlist = df['impedance'].to_numpy()
+        #plt.plot(zlist.real , -zlist.imag,'.')
+        #plt.show()
+        wzlist = df[['frequency','impedance']].to_numpy()
+        nhlist, nllist= find_extremum(wzlist)
+        r_reci_e = wzlist[nllist[0]][1].real
+        r_rec0_e = wzlist[-1][1].real
+        k = r_rec0_e / r_reci_e
+        klist.append(k)
+    for i in range (0, len(klist)-1):
+        if np.abs(klist[i+1]-klist[i]) < 0.001: #Here I used 0.001 as the threshold indicating the k value is stablised arbitrarily. Could be changed in the future
+            return klist[i+1]
+            break
+    print('the k is not stablised for this range of bias voltage')
+
+# def find_nA_Js(dfs , k): #need to input the list of dataframes and the ratio k found before.
+#     jlist = []
+#     vlist = []  
+#     for wzjvdf in dfs:
+#         vlist.append(wzjvdf['bias voltage'].values[-1])#-1 because the element at -1 corresponds to lowest frequency ~steady state
+#         jlist.append(wzjvdf['recomb current'].values[-1])
+#     log_jlist =np.log( np.array(jlist)[1:].real) #[1:]because the first element gives log0
+#     vlist = np.array(vlist).real[1:]
+#     grad,b = np.polyfit(vlist, log_jlist,1)
+#     nA_e = 1/VT*grad/k
+#     log_Js = -b/grad
+#     Js_e = np.exp(log_Js)
+#     #x = np.linspace(0,7,100)
+#     # poly1d_fn = np.poly1d([grad,b]) 
+#     # plt.plot(x , poly1d_fn(x),'--k')
+#     # plt.plot(vlist,log_jlist,'.')
+#     # plt.xlim([-1,5])
+#     # plt.ylim([-25,25])
+#     return Js_e , nA_e
+
+
+def find_nA_Js(dfs , k):
+    jlist = []
+    vlist = []  
+    for wzjvdf in dfs:
+        vlist.append(wzjvdf['bias voltage'].values[-1]) #-1 because the element at -1 corresponds to lowest frequency ~steady state
+        jlist.append(wzjvdf['recomb current'].values[-1])
+    log_jlist =np.log( np.array(jlist)[1:].real) #[1:]because the first element gives log0
+    vlist = np.array(vlist).real[1:]
+    #x = np.linspace(0,7,100)
+    grad,b = np.polyfit(log_jlist , vlist ,1)
+    log_Js = -b/grad
+    #poly1d_fn = np.poly1d([grad,b]) 
+    #plt.plot(log_jlist , poly1d_fn(log_jlist),'--k')
+    #plt.plot(log_jlist,vlist,'.')
+    # plt.xlim([-1,5])
+    # plt.ylim([-25,25])
+    Js_e = np.exp(log_Js)
+    nA_e = 1/VT*grad/k
+    return  Js_e,nA_e
+
+
+
+
+
+
+#%% MAIN
+    
+k = find_k(Vb_wzjv_list) #k is obtained
+Js_e , nA_e = find_nA_Js(Vb_wzjv_list , k)
+
+print('the estimated and actual k are  %.2f %.2f' %(k , (C_a + C_b)/C_a))
+print('the estimated and actual Js are %.1e %.1e' %(Js_e, J_s))
+print('the estiamted and actual nA are  %.2f %.2f' %(nA_e , nA))
+
+
+# klist = []
+# for df in Vb_wzjv_list:
+#     zlist = df['impedance'].to_numpy()
+#     plt.plot(zlist.real , -zlist.imag,'.')
+#     plt.show()
+#     wzlist = df[['frequency','impedance']].to_numpy()
+#     nhlist, nllist= find_extremum(wzlist)
+#     r_reci_e = wzlist[nllist[0]][1].real
+#     r_rec0_e = wzlist[-1][1].real
+#     k = r_rec0_e / r_reci_e
+#     klist.append(k)
+#     v_wzlist = np.stack((wzlist , vlist) , axis = -1)
+#     plt.plot(zlist.real , -zlist.imag , '.')
+#     plt.title('the bias voltage is' + str(i))
+#     plt.show()
+    
+    
+    
+    #Vb_z_list = np.append(Vb_z_list , np.array([zlist]), axis = 0)
+
+#Vb_z_list stores all the zlist data with different bias voltage Vb (act as the actual data sets collected)
+#for z_list in Vb_z_list:
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%% testing
+zlist, J1 = pero_model(w, C_a, C_b, R_i, C_g, J_s, nA, Vb)
+wzlist = np.stack((w , zlist) , axis = -1)
+wzlist = wzlist[wzlist[:, 1].real.argsort()]
+vlist = np.ones(len(wzlist)) * Vb
+jlist = np.ones(len(wzlist)) * J1
+v_wzlist = np.column_stack((wzlist , vlist, jlist))
+df = pd.DataFrame(v_wzlist , columns=['frequency' , 'impedance' , 'bias voltage', 'recomb current'])
+
+#print(type(df['impedance'].to_numpy()))
+
+#%%temporary run for finding j and n
+jlist = []
+vlist = []  
+for wzjvdf in Vb_wzjv_list:
+    vlist.append(wzjvdf['bias voltage'].values[-1]) #-1 because the element at -1 corresponds to lowest frequency ~steady state
+    jlist.append(wzjvdf['recomb current'].values[-1])
+log_jlist =np.log( np.array(jlist)[1:].real) #[1:]because the first element gives log0
+vlist = np.array(vlist).real[1:]
+
+x = np.linspace(0,7,100)
+
+grad,b = np.polyfit(log_jlist , vlist ,1)
+log_Js = -b/grad
+poly1d_fn = np.poly1d([grad,b]) 
+plt.plot(log_jlist , poly1d_fn(log_jlist),'--k')
+plt.plot(log_jlist,vlist,'.')
+# plt.xlim([-1,5])
+# plt.ylim([-25,25])
+Js_e = np.exp(log_Js)
+nA_e = 1/VT*grad/k
+
+print(nA_e, Js_e)
+
+#plt.xscale('log')
 
 
 
@@ -288,8 +479,7 @@ print(R_i_e, R_i_t)
 
 
 
-
-
+#%% implementing step 2
 
 
 

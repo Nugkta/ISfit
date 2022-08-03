@@ -33,9 +33,14 @@ eq1 = Eq(2*x**2 + x + 1, 0)
 
 sol = solve(eq1)
 
+#%%
+a = np.array([0 ,1 ,1 ,2])
+b = np.array([2])
+c = np.array([a,b], dtype = object)
 
-
-
+#%%
+array = np.random.rand(5,5,2)
+df = pd.DataFrame(array)
 
 
 
