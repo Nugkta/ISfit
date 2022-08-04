@@ -284,7 +284,7 @@ for V in Vblist:
     #v_wz_jlist = np.column_stack((v_))
     df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
     Vb_wzjv_list.append(df)
-
+Vb_wzjv_list
     
 
 
@@ -353,10 +353,14 @@ def find_nA_Js(dfs , k):
     return  Js_e,nA_e
 
 #STEP2, 3
-def find_Cab(dfs , k):
+def find_Cabg(dfs , k):
+    exist = False
     for df in dfs:
         if df['bias voltage'][0] == 0: #only use the dataframe with 0 bias voltage.
             wzjv0 = df
+            exist = True
+    if exist == False:
+        print('No 0 bias situation')
     zlist = np.array(wzjv0['impedance'].values)
     w = np.array(wzjv0['frequency'].values)
     C_ap = (1 / zlist).imag / w
@@ -373,49 +377,25 @@ def find_Ri(dfs):
     wzlist = df[['frequency','impedance']].to_numpy()
     nhlist, nllist= find_extremum(wzlist)
     whlist = wzlist[nhlist][: , 0]
-    w4 = whlist[0]
-    return w4
+    plt.plot(wzlist[:,1].real,-wzlist[:,1].imag)
+    w4 = min(whlist)
+    R_i_e = 1/(w4 * C_a).real
+    return R_i_e
 
-
-#%% MAIN
-    
-k = find_k(Vb_wzjv_list) #k is obtained, Vb_wzjv_list is the list of dataframes storing the experiment data.
-Js_e , nA_e = find_nA_Js(Vb_wzjv_list , k)
-
-print('the estimated and actual k are  %.2f %.2f' %(k , (C_a + C_b)/C_a))
-print('the estimated and actual Js are %.1e %.1e' %(Js_e, J_s))
-print('the estiamted and actual nA are  %.2f %.2f' %(nA_e , nA))
-
-
-# klist = []
-# for df in Vb_wzjv_list:
-#     zlist = df['impedance'].to_numpy()
-#     plt.plot(zlist.real , -zlist.imag,'.')
-#     plt.show()
-#     wzlist = df[['frequency','impedance']].to_numpy()
-#     nhlist, nllist= find_extremum(wzlist)
-#     r_reci_e = wzlist[nllist[0]][1].real
-#     r_rec0_e = wzlist[-1][1].real
-#     k = r_rec0_e / r_reci_e
-#     klist.append(k)
-#     v_wzlist = np.stack((wzlist , vlist) , axis = -1)
-#     plt.plot(zlist.real , -zlist.imag , '.')
-#     plt.title('the bias voltage is' + str(i))
-#     plt.show()
-    
-    
-    
-    #Vb_z_list = np.append(Vb_z_list , np.array([zlist]), axis = 0)
-
-#Vb_z_list stores all the zlist data with different bias voltage Vb (act as the actual data sets collected)
-#for z_list in Vb_z_list:
-
-    
+def get_init_guess(dfs):
+    k = find_k(dfs) #k is obtained, Vb_wzjv_list is the list of dataframes storing the experiment data.
+    Js_e , nA_e = find_nA_Js(dfs , k)
+    C_a_e , C_b_e , C_g_e = find_Cabg(dfs , k)
+    R_i_e = find_Ri(dfs)
+    return [C_a_e , C_b_e, C_g_e , R_i_e , nA_e ,Js_e]
 
 
 
 
 
+
+#%% MAIN 
+init_guess = get_init_guess(Vb_wzjv_list)
 
 
 
@@ -504,8 +484,11 @@ zlist = df['impedance'].to_numpy()
 wzlist = df[['frequency','impedance']].to_numpy()
 nhlist, nllist= find_extremum(wzlist)
 whlist = wzlist[nhlist][: , 0]
-w4 = whlist[1]
-R_i = 1/(w4 * C_sum)
+plt.plot(wzlist[:,1].real,-wzlist[:,1].imag)
+# for i in range (0,len(nhlist)):
+#     plt.plot(wzlist[nhlist[i]][1].real, -wzlist[nhlist[i]][1].imag,'r.')
+w4 = min(whlist)
+R_i_e = 1/(w4 * C_a)
 print(R_i_e)
 
 
@@ -520,3 +503,44 @@ print(R_i_e)
 
 
 
+#%% TEST MAIN
+    
+k = find_k(Vb_wzjv_list) #k is obtained, Vb_wzjv_list is the list of dataframes storing the experiment data.
+Js_e , nA_e = find_nA_Js(Vb_wzjv_list , k)
+C_a_e , C_b_e , C_g_e = find_Cabg(Vb_wzjv_list , k)
+R_i_e = find_Ri(Vb_wzjv_list)
+
+
+
+print('the estimated and actual k are  %.2f %.2f' %(k , (C_a + C_b)/C_a))
+print('the estimated and actual Js are %.1e %.1e' %(Js_e, J_s))
+print('the estiamted and actual nA are  %.2f %.2f' %(nA_e , nA))
+print('the estiamted and actual C_a are  %.1e %.1e' %(C_a_e , C_a))
+print('the estiamted and actual C_b are  %.1e %.1e' %(C_b_e , C_b))
+print('the estiamted and actual C_g are  %.1e %.1e' %(C_g_e , C_g))
+print('the estiamted and actual R_ion are  %.2d %.2d' %(R_i_e , R_i))
+
+# klist = []
+# for df in Vb_wzjv_list:
+#     zlist = df['impedance'].to_numpy()
+#     plt.plot(zlist.real , -zlist.imag,'.')
+#     plt.show()
+#     wzlist = df[['frequency','impedance']].to_numpy()
+#     nhlist, nllist= find_extremum(wzlist)
+#     r_reci_e = wzlist[nllist[0]][1].real
+#     r_rec0_e = wzlist[-1][1].real
+#     k = r_rec0_e / r_reci_e
+#     klist.append(k)
+#     v_wzlist = np.stack((wzlist , vlist) , axis = -1)
+#     plt.plot(zlist.real , -zlist.imag , '.')
+#     plt.title('the bias voltage is' + str(i))
+#     plt.show()
+    
+    
+    
+    #Vb_z_list = np.append(Vb_z_list , np.array([zlist]), axis = 0)
+
+#Vb_z_list stores all the zlist data with different bias voltage Vb (act as the actual data sets collected)
+#for z_list in Vb_z_list:
+
+    
