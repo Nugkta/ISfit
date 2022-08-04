@@ -244,7 +244,8 @@ R_i_e = 1 / (C_eff_e * w7 -1/ r_reci_e)
 # for i in sol:
 #     if i > 0:
 #         C_sum = float(i)
-C_eff = 1/(1/C_a + 1/C_b + 1/C_g)
+#C_eff = 1/(1/C_a + 1/C_b + 1/C_g)
+C_eff = 1/(1/C_a + 1/C_b )
 r_reci = nA * VT/ J_s
 #C_a_e = C_sum * k / (k-1) #estimated C_a
 print(C_eff, C_eff_e)
@@ -283,9 +284,15 @@ for V in Vblist:
     #v_wz_jlist = np.column_stack((v_))
     df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
     Vb_wzjv_list.append(df)
-   
+
     
+
+
+#%%list of functions for finding the initial guesses
 ###################### the sumulated data are generated and stored in Vb_wzlist   
+
+
+#STEP0
 def find_k(dfs): #function for finding an appropriate k (ratio of C_a/(C_a +C_b) from a list of dataframes just like above
     klist = []
     for df in dfs:
@@ -324,7 +331,7 @@ def find_k(dfs): #function for finding an appropriate k (ratio of C_a/(C_a +C_b)
 #     # plt.ylim([-25,25])
 #     return Js_e , nA_e
 
-
+#STEP1
 def find_nA_Js(dfs , k):
     jlist = []
     vlist = []  
@@ -345,14 +352,34 @@ def find_nA_Js(dfs , k):
     nA_e = 1/VT*grad/k
     return  Js_e,nA_e
 
+#STEP2, 3
+def find_Cab(dfs , k):
+    for df in dfs:
+        if df['bias voltage'][0] == 0: #only use the dataframe with 0 bias voltage.
+            wzjv0 = df
+    zlist = np.array(wzjv0['impedance'].values)
+    w = np.array(wzjv0['frequency'].values)
+    C_ap = (1 / zlist).imag / w
+    C_sum = C_ap[-1].real
+    C_a_e = (1 + 1/(k-1)) * C_sum  #the estimated C_a
+    C_b_e = (k - 1) * C_a     #the estimated C_b
+    C_g = C_ap[1].real       #the estiamted C_g
+    return C_a_e , C_b_e , C_g  
 
 
-
+def find_Ri(dfs): 
+    df = dfs[-1]#using the last dataframe to gurantee that the k is stablised
+    zlist = df['impedance'].to_numpy()
+    wzlist = df[['frequency','impedance']].to_numpy()
+    nhlist, nllist= find_extremum(wzlist)
+    whlist = wzlist[nhlist][: , 0]
+    w4 = whlist[0]
+    return w4
 
 
 #%% MAIN
     
-k = find_k(Vb_wzjv_list) #k is obtained
+k = find_k(Vb_wzjv_list) #k is obtained, Vb_wzjv_list is the list of dataframes storing the experiment data.
 Js_e , nA_e = find_nA_Js(Vb_wzjv_list , k)
 
 print('the estimated and actual k are  %.2f %.2f' %(k , (C_a + C_b)/C_a))
@@ -424,7 +451,7 @@ df = pd.DataFrame(v_wzlist , columns=['frequency' , 'impedance' , 'bias voltage'
 
 #print(type(df['impedance'].to_numpy()))
 
-#%%temporary run for finding j and n
+#%%temporary run for finding j and n (step1)
 jlist = []
 vlist = []  
 for wzjvdf in Vb_wzjv_list:
@@ -454,6 +481,32 @@ print(nA_e, Js_e)
 
 
 
+#%% implementing step 2 , 3
+Vb_wzjv_list
+for df in Vb_wzjv_list:
+    if df['bias voltage'][0] == 0:
+        wzjv0 = df
+zlist = np.array(wzjv0['impedance'].values)
+w = np.array(wzjv0['frequency'].values)
+C_ap = (1 / zlist).imag / w
+C_sum = C_ap[-1].real
+C_a_e = (1 + 1/(k-1)) * C_sum      #the estimated C_a
+C_b_e = (k - 1) * C_a   ##the estimated C_b
+C_g = C_ap[1].real
+
+
+
+
+#%% implementing step 4
+
+df = Vb_wzjv_list[-1]#using the last dataframe to gurantee that the k is stablised
+zlist = df['impedance'].to_numpy()
+wzlist = df[['frequency','impedance']].to_numpy()
+nhlist, nllist= find_extremum(wzlist)
+whlist = wzlist[nhlist][: , 0]
+w4 = whlist[1]
+R_i = 1/(w4 * C_sum)
+print(R_i_e)
 
 
 
@@ -461,25 +514,6 @@ print(nA_e, Js_e)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%% implementing step 2
 
 
 
