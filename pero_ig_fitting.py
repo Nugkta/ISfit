@@ -3,6 +3,8 @@
 Created on Thu Aug  4 13:03:47 2022
 
 @author: pokey
+
+perovskite model & initial guess & fitting
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -168,13 +170,51 @@ for V in Vblist:
     #v_wz_jlist = np.column_stack((v_))
     df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
     Vb_wzjv_list.append(df)
-#Vb_wzjv_list
+
+#Vb_wzjv_list, the sequence of dfs to be analysed and fit  is generated here. 
 
 #%% Finding the initial guess
 init_guess = get_init_guess(Vb_wzjv_list)
 C_a_e , C_b_e, C_g_e , R_i_e , nA_e ,Js_e = init_guess
 print(init_guess)
 
+
+
+
+
+
+
+#%% the function for the global fit
+
+#in order to fit the complex function, split it to real and imaginary part and then do the fit to the stacked list of real and imaginary part
+def pero_sep(wvb, C_a, C_b, R_i, C_g, J_s, n):
+    z = pero_model(wvb[:,0], C_a, C_b, R_i, C_g, J_s, n, wvb[:,1])[0] # because w and vb are both regarded as variables here.
+    return np.hstack([z.real, z.imag])          # this will return a list of the form [z1real, z2real,...,z1imag, z2imag, ...]
+
+
+
+#the function for global fitting, need to input the list of df and the initial guess obtained above. 
+def global_fit(dfs, init_guess):
+    zlist_big = np.array([])      #because we are fitting the w,v to z, need to stack up all the w v and z list from different Vb each to be one big list. 
+    wlist_big = np.array([])
+    vlist_big = np.array([])
+    for df in dfs:
+        zlist_big = np.concatenate((zlist_big , df['impedance'].values))
+        wlist_big = np.concatenate((wlist_big , df['frequency'].values.real))
+        vlist_big = np.concatenate((vlist_big , df['bias voltage'].values.real))
+    wvlist_big = np.stack((wlist_big,vlist_big),axis = 1)          # the v is changing for as the condition change, so in order to do the global fit, I regard is as a variable here, and stacked it with w.
+    zrlist_big = zlist_big.real 
+    zilist_big = zlist_big.imag 
+    Zlist_big = np.hstack([zrlist_big, zilist_big])
+    popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big,p0 = init_guess)   #fitting the function to the variables (wv(independent) and z(dependent)) for parameters
+    return popt, pcov
+#%%
+
+init_guess = get_init_guess(Vb_wzjv_list)
+print('the initial guesses are', init_guess)
+popt, pcov = global_fit(Vb_wzjv_list , init_guess)
+print('the fitted parameters are',popt)
+print('the original parameters are',C_a, C_b, R_i, C_g, J_s, nA )
 
 
 
@@ -196,14 +236,12 @@ print(init_guess)
 
 
 #%% TRY FITTING BY SETTING BIAS VOLTAGE AS ANOTHER VARIABLE
-def pero_sep(wvb, C_a, C_b, R_i, C_g, J_s, n):
-    z = pero_model(wvb[:,0], C_a, C_b, R_i, C_g, J_s, n, wvb[:,1])[0] # because w and vb are both regarded as variables here.
-    return np.hstack([z.real, z.imag])
+
 # def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
 #     z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
 #     return np.hstack([z.real, z.imag])
 
-Vb_wzjv_lists = Vb_wzjv_list[0]
+#Vb_wzjv_lists = Vb_wzjv_list[0]
 
 
 from scipy.optimize import curve_fit
@@ -224,7 +262,7 @@ Zlist_big = np.hstack([zrlist_big, zilist_big])
 popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA) , wvlist_big, Zlist_big,p0 = init_guess)
 
 
-#这里估计还是globalisation有问题
+#working!!!
 
 
 #%%
@@ -253,7 +291,6 @@ popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R
 
 
 # #WORKING!
-
 
 
 
