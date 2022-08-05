@@ -197,7 +197,7 @@ print(init_guess)
 
 #%% TRY FITTING BY SETTING BIAS VOLTAGE AS ANOTHER VARIABLE
 def pero_sep(wvb, C_a, C_b, R_i, C_g, J_s, n):
-    z = pero_model(wvb[:,0], C_a, C_b, R_i, C_g, J_s, n, wvb[:,1])[0]
+    z = pero_model(wvb[:,0], C_a, C_b, R_i, C_g, J_s, n, wvb[:,1])[0] # because w and vb are both regarded as variables here.
     return np.hstack([z.real, z.imag])
 # def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
 #     z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
@@ -212,46 +212,47 @@ wlist_big = np.array([])
 vlist_big = np.array([])
 for df in Vb_wzjv_list:
     zlist_big = np.concatenate((zlist_big , df['impedance'].values))
-    wlist_big = np.concatenate((wlist_big , df['frequency'].values))
-    vlist_big = np.concatenate((vlist_big , df['bias voltage'].values))
+    wlist_big = np.concatenate((wlist_big , df['frequency'].values.real))
+    vlist_big = np.concatenate((vlist_big , df['bias voltage'].values.real))
 
 wvlist_big = np.stack((wlist_big,vlist_big),axis = 1)
 
 zrlist_big = zlist_big.real 
 zilist_big = zlist_big.imag 
-Zlist_big = np.hstack([zrlist_big, -zilist_big])
+Zlist_big = np.hstack([zrlist_big, zilist_big])
 
-popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA,)[0] , wvlist_big, Zlist_big,p0 = init_guess)
+popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA) , wvlist_big, Zlist_big,p0 = init_guess)
+
 
 #这里估计还是globalisation有问题
 
 
 #%%
-a = pero_sep(wvlist_big, C_a, C_b, R_i, C_g, J_s, nA)
+#a = pero_sep(wvlist_big, C_a, C_b, R_i, C_g, J_s, nA)
+
+
+# x = np.stack((wlist_big,vlist_big),axis = 1)
 
 
 
+# #%% TRY FITTING ONLY ONE DATA SET
+
+# def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
+#     z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
+#     return np.hstack([z.real, z.imag])
+
+# df = Vb_wzjv_list[0]
+# zlist = df['impedance'].values
+# wlist = df['frequency'].values
+# vlist = df['bias voltage'].values
+# wvlist= np.stack((wlist,vlist),axis = 1)
+# zrlist = zlist.real 
+# zilist = zlist.imag 
+# Zlist = np.hstack([zrlist, zilist])
+# popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA,0) , wlist, Zlist,p0 = init_guess)
 
 
-
-#%% TRY FITTING ONLY ONE DATA SET
-
-def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
-    z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
-    return np.hstack([z.real, z.imag])
-
-df = Vb_wzjv_list[0]
-zlist = df['impedance'].values
-wlist = df['frequency'].values
-vlist = df['bias voltage'].values
-wvlist= np.stack((wlist,vlist),axis = 1)
-zrlist = zlist.real 
-zilist = zlist.imag 
-Zlist = np.hstack([zrlist, zilist])
-popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA,0) , wlist, Zlist,p0 = init_guess)
-
-
-#WORKING!
+# #WORKING!
 
 
 
@@ -282,7 +283,7 @@ popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R
     
 
 # def pero(w, C_a, C_b, R_i, C_g, J_s, n, Vb):
-#      return w+ C_a+ C_b+ R_i+ C_g+ J_s+ n+ Vb
+#       return w+ C_a+ C_b+ R_i+ C_g+ J_s+ n+ Vb
 
 # model = Model({
 #     z1: pero_model(w1, 1,1,1,1,1,1, 0)[0]    ,                              
@@ -292,25 +293,27 @@ popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R
 
 
 
-# #%% FIRST trying to fit 2 sets of data in the same time by using symfit
+#%% FIRST trying to fit 2 sets of data in the same time by using symfit
 # from symfit import Parameter , Variable , Fit , parameters, variables, Model
 # import sympy as sp
 # # we need to fit w_z relation
 # w = np.logspace(-6 , 10 , 1000)  
-# zlist0 = np.array(Vb_wzjv_list[0]['impedance'].values)
-# zlist1 = np.array(Vb_wzjv_list[1]['impedance'].values)
+# zlist0 = np.hstack([np.array(Vb_wzjv_list[0]['impedance'].values.real),np.array(Vb_wzjv_list[0]['impedance'].values.imag)])
+# zlist1 = np.hstack([np.array(Vb_wzjv_list[1]['impedance'].values.real), np.array(Vb_wzjv_list[1]['impedance'].values.imag)])
 
 # C_af, C_bf, R_if, C_gf, J_sf, nf = parameters('C_af, C_bf, R_if, C_gf, J_sf, nf')
 # for i in range(0,6):
 #     [C_af, C_bf, R_if, C_gf, J_sf, nf][i].value = init_guess[i]
 
 # #%%
-
+# def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
+#     z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
+#     return np.hstack([sp.re(z), sp.im(z)])
 
 # z1 , z2 , w1, w2 = variables('z1 , z2 , w1, w2')
 # model = Model({
-#     z1: sp.re(pero_model(w1, C_af, C_bf, R_if, C_gf, J_sf, nf, 0)[0])    ,                              
-#     z2: sp.re(pero_model(w2, C_af, C_bf, R_if, C_gf, J_sf, nf, Vb_wzjv_list[1]['bias voltage'][0].real)[0] ),
+#     z1: sp.re(pero_sep(w1, C_af, C_bf, R_if, C_gf, J_sf, nf, 0)[0])    ,                              
+#     z2: sp.re(pero_sep(w2, C_af, C_bf, R_if, C_gf, J_sf, nf, Vb_wzjv_list[1]['bias voltage'][0].real)[0] ),
 
 # })
 
@@ -323,7 +326,7 @@ popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R
 
 
 # #%%
-# pero_model(w2, C_a, C_b, R_i, C_g, J_s, n, Vb_wzjv_list[1]['bias voltage'][0].real)[0]
+# r = pero_sep(w, C_a, C_b, R_i, C_g, J_s, nA, Vb_wzjv_list[1]['bias voltage'][0].real)[0]
 
 
 
@@ -339,7 +342,7 @@ popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R
 
 
 
-
+# 
 
 
 

@@ -214,6 +214,8 @@ fit = Fit(model, x_1=xdata1, x_2=xdata2, y_1=ydata1, y_2=ydata2)
 fit_result = fit.execute()
 
 
+#%%
+y = lambda x: x**2 +2
 
 
 
