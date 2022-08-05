@@ -370,7 +370,7 @@ def find_Cabg(dfs , k):
     C_g = C_ap[1].real       #the estiamted C_g
     return C_a_e , C_b_e , C_g  
 
-
+#STEP 4
 def find_Ri(dfs): 
     df = dfs[-1]#using the last dataframe to gurantee that the k is stablised
     zlist = df['impedance'].to_numpy()
