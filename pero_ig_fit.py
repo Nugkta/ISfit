@@ -193,22 +193,22 @@ print(init_guess)
 
 
 #%% FIRST trying to fit 2 sets of data in the same time by using symfit
-from symfit import Parameter , Variable , Fit , parameters, variables, Model
-# we need to fit w_z relation
-w = np.logspace(-6 , 10 , 1000)  
-zlist0 = np.array(Vb_wzjv_list[0]['impedance'].values)
-zlist1 = np.array(Vb_wzjv_list[1]['impedance'].values)
+# from symfit import Parameter , Variable , Fit , parameters, variables, Model
+# # we need to fit w_z relation
+# w = np.logspace(-6 , 10 , 1000)  
+# zlist0 = np.array(Vb_wzjv_list[0]['impedance'].values)
+# zlist1 = np.array(Vb_wzjv_list[1]['impedance'].values)
 
-C_a, C_b, R_i, C_g, J_s, n = parameters('C_a, C_b, R_i, C_g, J_s, n')
-z1 , z2 , w1, w2 = variables('z1 , z2 , w1, w2')
-model = Model({
-    z1: pero_model(w1, C_a, C_b, R_i, C_g, J_s, n, 0)    ,                              
-    z2: pero_model(w2, C_a, C_b, R_i, C_g, J_s, n, Vb_wzjv_list[1]['bias voltage'][0].real) 
-})
+# C_a, C_b, R_i, C_g, J_s, n = parameters('C_a, C_b, R_i, C_g, J_s, n')
+# z1 , z2 , w1, w2 = variables('z1 , z2 , w1, w2')
+# model = Model({
+#     z1: pero_model(w1, C_a, C_b, R_i, C_g, J_s, n, 0)    ,                              
+#     z2: pero_model(w2, C_a, C_b, R_i, C_g, J_s, n, Vb_wzjv_list[1]['bias voltage'][0].real) 
+# })
 
 
-fit = Fit(model, w1=w, w2=2, z1=zlist0, z2=zlist1)
-fit_result = fit.execute()
+# fit = Fit(model, w1=w, w2=2, z1=zlist0, z2=zlist1)
+# fit_result = fit.execute()
 
 
 

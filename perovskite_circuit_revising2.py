@@ -48,11 +48,11 @@ def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):
     #v1 = 2
 ##########################################################################################
 #This part give V directly by assuming the charge on the three capacitance are equal 
-    print('V is ----', V)
+    #print('V is ----', V)
     Q = V/(1/C_a + 1/C_b + 1/C_c)
-    print('Q is ----', Q)
+    #print('Q is ----', Q)
     v1 = V - Q/C_a
-    print('v1 is ----',v1)
+    #print('v1 is ----',v1)
 #######################################################################################
 #this part used the Z_elct from the Matlab code (with a change Cion---C_g)
     J1 = J_s*(np.exp((v1-0)/VT) - np.exp((v1 - V)/VT))
@@ -68,8 +68,8 @@ def find_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):
     Z_d = 1 / (1/Zcap(C_g,w) + 1/R_i)
     Z_ion = (Zcap(C_a,w) + Zcap(C_b,w) + Zcap(C_c,w) + Z_d)
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
-    print('Z_ i is---------',Z_ion)
-    print("z_elct is -----", Z_elct)
+    # print('Z_ i is---------',Z_ion)
+    # print("z_elct is -----", Z_elct)
     return Z_tot
 
 
@@ -130,6 +130,9 @@ def func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init, V):                   
 
 def fit(wlist, zrlist, zilist,  R_i,C_g, C_c, J_s, n, q_init,Vb):                          #returns the fitting parameters          #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                                          
     Zlist = np.hstack([zrlist, -zilist])                                                                                         #10,10,4
+    print(np.shape(Zlist))
+    print(len(wlist))
+    print(len(Zlist))
     popt, pcov = curve_fit(lambda w,  C_a,C_b: func_imp(w, C_a,C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist,p0 = [10,8], maxfev = 10000000)   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!         
     #try changing to different inital guess
     #popt, pcov = curve_fit(lambda w,  C_a, C_b, R_i, C_g, C_c, J_s, n, q_init: func_imp(w, C_a, C_b, R_i, C_g, C_c, J_s, n,  q_init,Vb) , wlist, Zlist, p0 = [1,1,4,4,1, 1,1,0],)
@@ -197,7 +200,7 @@ def main(wlist, zrlist, zilist,  R_i, C_g, C_c, J_s, n,  q_init,vb):   #!!!!!!!!
     
 main(wlist, zrlist, zilist,4,4,10, 1,1,0,2)                               #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#%%
+len#%%
 #######################################################################
 #this part is for trying the fit
 # popt, pcov = fit(wlist, zrlist, zilist, 2)   
@@ -211,7 +214,8 @@ main(wlist, zrlist, zilist,4,4,10, 1,1,0,2)                               #!!!!!
 # plt.plot(wlist, zfit,'r--')
 # plt.xscale('log')
 
-
+#%% 
+x = func_imp(wlist, 9.42381778858412, 8.910415497959255, 4,4,10, 1,1,0,2)
 
 
 

@@ -171,28 +171,47 @@ for i in range(5):
 plt.show()
 
 #%% Learning symfit
-from symfit import Parameter , Variable
+from symfit import Parameter , Variable, parameters, variables, Model
 from symfit import Fit
 import numpy as np
+def func(x,a,b):
+    return a * np.e**(x) + b*1j
+
 a = Parameter('a' , value = 1, min = -4 , max = 10)
 b = Parameter('b' )
 x = Variable('x')
-model = a * x + b
+model = func(x,a,b)
 
 #generating data
 xdata = np.linspace(0, 100, 100) # From 0 to 100 in 100 steps
 a_vec = np.random.normal(15.0, scale=2.0, size=(100,))
 b_vec = np.random.normal(100.0, scale=2.0, size=(100,))
-ydata = a_vec * xdata + b_vec  # Point scattered around the line 5 * x + 105
+ydata = a_vec * np.e**xdata + b_vec*1j  # Point scattered around the line 5 * x + 105
 
 fit = Fit(model , xdata, ydata)
 fit_result = fit.execute()
 
+#%%
 
+x_1, x_2, y_1, y_2 = variables('x_1, x_2, y_1, y_2')
+y0, a_1, a_2, b_1, b_2 = parameters('y0, a_1, a_2, b_1, b_2')
 
+def func(x):
+    return 2 + 3 * np.e**(- 4 * x)
 
+model = Model({
+    y_1: y0 + a_1 * np.e**(- b_1 * x_1) ,
+    y_2: y0 + a_2 * np.e**(- b_2 * x_2),
+})
 
+xdata1 = np.linspace(0, 100, 100)
+xdata2 = np.linspace(0, 100, 100)
 
+ydata1 = func( xdata1)
+ydata2 = func( xdata2)
+
+fit = Fit(model, x_1=xdata1, x_2=xdata2, y_1=ydata1, y_2=ydata2)
+fit_result = fit.execute()
 
 
 

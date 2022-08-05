@@ -36,10 +36,10 @@ def pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb): #w is the list of frequency r
     Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_i)
     Z_ion = (Zcap(C_a , w) + Zcap(C_b , w) + Z_d) #the impedance of the ionic branch
     v1 = Vb * (C_a / (C_a + C_b))
-    J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - np.exp((v1 - Vb) / (n * VT))) #the current densitf of the electronic branch
+    J1 = J_s*(np.e**((v1 - 0) / (n * VT)) - np.e**((v1 - Vb) / (n * VT))) #the current densitf of the electronic branch
     #J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - 0)
-    Jrec = J_s * np.exp(v1 / (n * VT))        #the recombination current and the generation current
-    Jgen = J_s * np.exp((v1 - Vb) / (n * VT))
+    Jrec = J_s * np.e**(v1 / (n * VT))        #the recombination current and the generation current
+    Jgen = J_s * np.e**((v1 - Vb) / (n * VT))
     A = Zcap(C_a , w)/ Z_ion
     djdv = (1 - A) * Jrec / (n * VT) + A * Jgen / (n * VT)
     Z_elct = 1 / djdv #the impedance of the electronic branch
@@ -150,7 +150,7 @@ def get_init_guess(dfs):
     Js_e , nA_e = find_nA_Js(dfs , k)
     C_a_e , C_b_e , C_g_e = find_Cabg(dfs , k)
     R_i_e = find_Ri(dfs)
-    return [C_a_e , C_b_e, C_g_e , R_i_e , nA_e ,Js_e]
+    return [C_a_e , C_b_e,  R_i_e ,C_g_e ,Js_e, nA_e ]
 
 
 #%% generating simulated sets of data
@@ -172,7 +172,98 @@ for V in Vblist:
 
 #%% Finding the initial guess
 init_guess = get_init_guess(Vb_wzjv_list)
+C_a_e , C_b_e, C_g_e , R_i_e , nA_e ,Js_e = init_guess
 print(init_guess)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%% TRY FITTING BY SETTING BIAS VOLTAGE AS ANOTHER VARIABLE
+def pero_sep(wvb, C_a, C_b, R_i, C_g, J_s, n):
+    z = pero_model(wvb[:,0], C_a, C_b, R_i, C_g, J_s, n, wvb[:,1])[0]
+    return np.hstack([z.real, z.imag])
+# def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
+#     z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
+#     return np.hstack([z.real, z.imag])
+
+Vb_wzjv_lists = Vb_wzjv_list[0]
+
+
+from scipy.optimize import curve_fit
+zlist_big = np.array([])
+wlist_big = np.array([])
+vlist_big = np.array([])
+for df in Vb_wzjv_list:
+    zlist_big = np.concatenate((zlist_big , df['impedance'].values))
+    wlist_big = np.concatenate((wlist_big , df['frequency'].values))
+    vlist_big = np.concatenate((vlist_big , df['bias voltage'].values))
+
+wvlist_big = np.stack((wlist_big,vlist_big),axis = 1)
+
+zrlist_big = zlist_big.real 
+zilist_big = zlist_big.imag 
+Zlist_big = np.hstack([zrlist_big, -zilist_big])
+
+popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA,)[0] , wvlist_big, Zlist_big,p0 = init_guess)
+
+#这里估计还是globalisation有问题
+
+
+#%%
+a = pero_sep(wvlist_big, C_a, C_b, R_i, C_g, J_s, nA)
+
+
+
+
+
+
+#%% TRY FITTING ONLY ONE DATA SET
+
+def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
+    z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
+    return np.hstack([z.real, z.imag])
+
+df = Vb_wzjv_list[0]
+zlist = df['impedance'].values
+wlist = df['frequency'].values
+vlist = df['bias voltage'].values
+wvlist= np.stack((wlist,vlist),axis = 1)
+zrlist = zlist.real 
+zilist = zlist.imag 
+Zlist = np.hstack([zrlist, zilist])
+popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA,0) , wlist, Zlist,p0 = init_guess)
+
+
+#WORKING!
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -185,37 +276,54 @@ print(init_guess)
 
 
 
+# from symfit import Parameter , Variable , Fit , parameters, variables, Model
+
+# def sep_com():
+    
+
+# def pero(w, C_a, C_b, R_i, C_g, J_s, n, Vb):
+#      return w+ C_a+ C_b+ R_i+ C_g+ J_s+ n+ Vb
+
+# model = Model({
+#     z1: pero_model(w1, 1,1,1,1,1,1, 0)[0]    ,                              
+#     z2: pero_model(w2, 1,1,1,1,1,1,1)[0] ,
+# })
+
+
+
+
+# #%% FIRST trying to fit 2 sets of data in the same time by using symfit
+# from symfit import Parameter , Variable , Fit , parameters, variables, Model
+# import sympy as sp
+# # we need to fit w_z relation
+# w = np.logspace(-6 , 10 , 1000)  
+# zlist0 = np.array(Vb_wzjv_list[0]['impedance'].values)
+# zlist1 = np.array(Vb_wzjv_list[1]['impedance'].values)
+
+# C_af, C_bf, R_if, C_gf, J_sf, nf = parameters('C_af, C_bf, R_if, C_gf, J_sf, nf')
+# for i in range(0,6):
+#     [C_af, C_bf, R_if, C_gf, J_sf, nf][i].value = init_guess[i]
+
+# #%%
+
+
+# z1 , z2 , w1, w2 = variables('z1 , z2 , w1, w2')
+# model = Model({
+#     z1: sp.re(pero_model(w1, C_af, C_bf, R_if, C_gf, J_sf, nf, 0)[0])    ,                              
+#     z2: sp.re(pero_model(w2, C_af, C_bf, R_if, C_gf, J_sf, nf, Vb_wzjv_list[1]['bias voltage'][0].real)[0] ),
+
+# })
+
+
+# fit = Fit(model, w1=w, w2=w, z1=zlist0, z2=zlist1)
+# fit_result = fit.execute()
 
 
 
 
 
-
-
-#%% FIRST trying to fit 2 sets of data in the same time by using symfit
-from symfit import Parameter , Variable , Fit , parameters, variables, Model
-# we need to fit w_z relation
-w = np.logspace(-6 , 10 , 1000)  
-zlist0 = np.array(Vb_wzjv_list[0]['impedance'].values)
-zlist1 = np.array(Vb_wzjv_list[1]['impedance'].values)
-
-C_a, C_b, R_i, C_g, J_s, n = parameters('C_a, C_b, R_i, C_g, J_s, n')
-z1 , z2 , w1, w2 = variables('z1 , z2 , w1, w2')
-model = Model({
-    z1: pero_model(w1, C_a, C_b, R_i, C_g, J_s, n, 0)    ,                              
-    z2: pero_model(w2, C_a, C_b, R_i, C_g, J_s, n, Vb_wzjv_list[1]['bias voltage'][0].real) 
-})
-
-
-fit = Fit(model, w1=w, w2=2, z1=zlist0, z2=zlist1)
-fit_result = fit.execute()
-
-
-
-
-
-
-
+# #%%
+# pero_model(w2, C_a, C_b, R_i, C_g, J_s, n, Vb_wzjv_list[1]['bias voltage'][0].real)[0]
 
 
 
