@@ -1,11 +1,11 @@
-                í    Version=12
+                ?   Version=12
 QR=QR,1,201020151657000B40549,,1088,44124.636771,44124.639745,user1,100,,B40549,0,1,1,1,2641,4,0,Scan 1,,,,,,0,,,,,,Project_1,1088201020151657000B40549
 Peaks=false
 Corrosion=false
 Levels=false
 ECN=false
 Solarcell=false
-’    Version=12
+?   Version=12
 starttime=20/10/2020 15:16:57
 endtime=20/10/2020 15:21:14
 serialnumber=B40549
@@ -13,7 +13,7 @@ software=4952
 firmware=939
 timing=0
 config1=2641
-ª   Version=13
+?   Version=13
 Method=Impedance
 Technique=Constant E
 Dconfig=16384
@@ -160,7 +160,7 @@ Report=
 Report.Remarks=
 Report.Process data=instrument  : B40549channel     : 0software vs : 4.952firmware vs : 939 (939)hw config   : CompactStat+HiSens+FRAstart time  : 20/10/2020 15:16:57end time    : 20/10/2020 15:21:14endcondition: Scan completedSpec Rev    : 01DbFileName  : DataServer_Batch_b40549_2020-10-20_15-09-19-686.idf.sqliteDbFileMeasId: 4
 Mconfig=0
-¾×   2         
+   2         
 Data Objects     0         
 primary_data     3         
 41        

@@ -217,7 +217,12 @@ fit_result = fit.execute()
 #%%
 y = lambda x: x**2 +2
 
+#%%
+import glob
 
+txtfiles = []
+for file in glob.glob("C:/Users/pokey/Documents/UROP/cir_simu/*.txt"):
+    txtfiles.append(file)
 
 
 
