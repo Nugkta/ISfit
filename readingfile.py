@@ -76,6 +76,7 @@ def read_imp_folder(folder_path): #the function that find all the .txt file in a
     dfs = []
     for file in glob.glob(folder_path + '*.txt'):
         txtfiles.append(file)
+    print(glob.glob(folder_path + '*.txt'))
     for i in txtfiles : 
         df = read_imp_file(i)
         dfs.append(df)
@@ -90,8 +91,8 @@ def read_imp_folder(folder_path): #the function that find all the .txt file in a
 #%% THE MAIN PROCEDURE IS HERE
 #C:/Users/pokey/Documents/UROP/cir_simu/*.txt
 
-dfs = read_imp_folder('C:/Users/pokey/Documents/UROP/Humidity Dark Impedance Data/MAPI/MAPIdev2p5DRIEDLiI25C/')
-
+#dfs = read_imp_folder('C:/Users/pokey/Documents/UROP/Humidity Dark Impedance Data/MAPI/MAPIdev2p5DRIEDLiI25C/')
+dfs = read_imp_folder('/Users/pokey/Documents/GitHub/perovskite_circuit')
 
 
 
