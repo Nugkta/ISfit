@@ -49,7 +49,7 @@ def read_as_df(file_name , skip =171 , data_num = 41):     #the function that cl
 
 
 def parse_file(file_name):      #the function that parse the file and return the rows to skip and the number of rows of data
-    file = open('1203_201022EISScan1B40549.txt', 'r',encoding='latin1')
+    file = open(file_name, 'r',encoding='latin1')
     #flag = 0
     file_lines = file.readlines()
     index = 0
@@ -92,7 +92,28 @@ def read_imp_folder(folder_path): #the function that find all the .txt file in a
 #C:/Users/pokey/Documents/UROP/cir_simu/*.txt
 
 #dfs = read_imp_folder('C:/Users/pokey/Documents/UROP/Humidity Dark Impedance Data/MAPI/MAPIdev2p5DRIEDLiI25C/')
-dfs = read_imp_folder('/Users/pokey/Documents/GitHub/perovskite_circuit')
+#dfs = read_imp_folder('/MAPIdev2p5DRIEDLiI25C/')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
