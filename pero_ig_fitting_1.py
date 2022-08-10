@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from sympy import symbols, Eq, solve
 import pandas as pd
-
+from scipy.signal import argrelextrema
 #defining the constants and inputted parameters for testing
 VT = 0.026 # = kT/q
 C_a = 2e-7
@@ -65,6 +65,8 @@ def find_extremum(wzlist): #algorithm to find the extremums of the Nyquist plot
                 break
         while seek == 'min':
             n += 1
+            # print(n)
+            # print(len(zlist))
             if -zlist[n].imag < -zlist[n+1].imag:  #note that the imaginary part should be nagative in the Nyquist plot.
                 nllist.append(n)
                 seek = 'max'
@@ -84,7 +86,11 @@ def find_k(dfs): #function for finding an appropriate k (ratio of C_a/(C_a +C_b)
         #plt.plot(zlist.real , -zlist.imag,'.')
         #plt.show()
         wzlist = df[['frequency','impedance']].to_numpy()
-        nhlist, nllist= find_extremum(wzlist)
+        nhlist = np.array(argrelextrema(wzlist[:,1].imag, np.less))[0]
+        nllist = np.array(argrelextrema(wzlist[:,1].imag, np.greater))[0]
+        # nhlist, nllist= find_extremum(wzlist)
+        # print(nhlist, 'is nllist')
+        # print(nhlist1[0], 'is nllist222222222')
         r_reci_e = wzlist[nllist[0]][1].real
         r_rec0_e = wzlist[-1][1].real
         k = r_rec0_e / r_reci_e
