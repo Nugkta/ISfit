@@ -35,7 +35,8 @@ import matplotlib.pyplot as plt
 def name_df_wz(df):       #note the sort by z_real is done here
     headers = df.columns
     df = df.rename(columns = {headers[0]: 'z_real', headers[1]: 'z_imag',headers[2] : 'frequency'})
-    df.plot(x = 'z_real', y = 'z_imag',kind = 'scatter')
+    #df.plot(x = 'z_real', y = 'z_imag',kind = 'scatter')
+    plt.plot(df['z_real'],-df['z_imag'],'.')
     df = df.sort_values(by=['z_real'])
     return df
 
