@@ -34,7 +34,6 @@ def pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb): #w is the list of frequency r
     Z_ion = (Zcap(C_a , w) + Zcap(C_b , w) + Z_d) #the impedance of the ionic branch
     v1 = Vb * (C_a / (C_a + C_b))
     J1 = J_s*(np.e**((v1 - 0) / (n * VT)) - np.e**((v1 - Vb) / (n * VT))) #the current densitf of the electronic branch
-    #print('the power in J1 is', (v1 - Vb) / (n * VT))
     #J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - 0)
     Jrec = J_s * np.e**(v1 / (n * VT))        #the recombination current and the generation current
     Jgen = J_s * np.e**((v1 - Vb) / (n * VT))
@@ -92,11 +91,8 @@ def find_k(dfs): #function for finding an appropriate k (ratio of C_a/(C_a +C_b)
         if np.abs(klist[i+1]-klist[i]) < 0.001: #Here I used 0.001 as the threshold indicating the k value is stablised arbitrarily. Could be changed in the future
             return klist[i+1]
             break
-    print('the k is not stablised for this range of bias voltage, so picked the last k')
-    #################################################################################################
-    #return klist[-1]
-    return klist[-1]
-    #return 2
+    print('the k is not stablised for this range of bias voltage')
+
 #STEP1
 def find_nA_Js(dfs , k):
     jlist = []
@@ -132,35 +128,30 @@ def find_Cabg(dfs , k):
     C_ap = (1 / zlist).imag / w
     C_sum = C_ap[-1].real
     C_a_e = (1 + 1/(k-1)) * C_sum  #the estimated C_a
-    C_b_e = (k - 1) * C_a_e    #the estimated C_b
+    C_b_e = (k - 1) * C_a     #the estimated C_b
     C_g = C_ap[1].real       #the estiamted C_g
-    print('C_a , C_b,k are',C_a_e , C_b_e ,k)
     return C_a_e , C_b_e , C_g  
 
 #STEP 4
-def find_Ri(dfs, C_a_e): 
-    ############################################################################################################################
-    #df = dfs[-2]#using the last dataframe to gurantee that the k is stablised
-    df = dfs[-1]
+def find_Ri(dfs): 
+    df = dfs[-1]#using the last dataframe to gurantee that the k is stablised
     #zlist = df['impedance'].to_numpy()
     wzlist = df[['frequency','impedance']].to_numpy()
     #nhlist, nllist= find_extremum(wzlist)
     nhlist = np.array(argrelextrema(wzlist[:,1].imag, np.less))[0]
     nllist = np.array(argrelextrema(wzlist[:,1].imag, np.greater))[0]
     whlist = wzlist[nhlist][: , 0]
-    #plt.plot(wzlist[:,1].real,-wzlist[:,1].imag)
+    plt.plot(wzlist[:,1].real,-wzlist[:,1].imag)
     w4 = min(whlist)
-    R_i_e = 1/(w4 * C_a_e).real
-    print('C_a and C_a_e are', C_a,C_a_e)
+    R_i_e = 1/(w4 * C_a).real
     return R_i_e
 
 #For finding the initial guess using the functions defined above
 def get_init_guess(dfs):
     k = find_k(dfs) #k is obtained, Vb_wzjv_list is the list of dataframes storing the experiment data.
-    print('the k is', k)
     Js_e , nA_e = find_nA_Js(dfs , k)
     C_a_e , C_b_e , C_g_e = find_Cabg(dfs , k)
-    R_i_e = find_Ri(dfs,C_a_e)
+    R_i_e = find_Ri(dfs)
     return [C_a_e , C_b_e,  R_i_e ,C_g_e ,Js_e, nA_e ]
 
 
@@ -186,73 +177,8 @@ def global_fit(dfs, init_guess):
     zrlist_big = zlist_big.real 
     zilist_big = zlist_big.imag 
     Zlist_big = np.hstack([zrlist_big, zilist_big])
-    popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big,p0 = init_guess,maxfev = 100000)   #fitting the function to the variables (wv(independent) and z(dependent)) for parameters
+    popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big,p0 = init_guess)   #fitting the function to the variables (wv(independent) and z(dependent)) for parameters
     return popt, pcov
-
-
-
-
-
-
-#%%
-#%% generating simulated sets of data
-Vblist = np.linspace(0, 1, 20)      #defining the range of the bias volatage
-w = np.logspace(-6 , 10 , 1000)     #defining the range of the frequency 
-Vb_z_list = np.empty([2 , 1000])    #initialising Vbzlist
-Vb_wzjv_list = [] #initialising the list of dataframes, each dataframe corresponds to a specific bias voltage
-for V in Vblist:
-    zlist, J1 = pero_model(w, C_a, C_b, R_i, C_g, J_s, nA, V)
-    wzlist = np.stack((w , zlist) , axis = -1)
-    wzlist = wzlist[wzlist[:, 1].real.argsort()]     # sorting the wzlist by the real part of the impedance(preparing for the find extrema function)
-    vlist = np.ones(len(wzlist)) * V
-    jlist = np.ones(len(wzlist)) * J1
-    wz_v_jlist = np.column_stack((wzlist , vlist,jlist))
-    #v_wz_jlist = np.column_stack((v_))
-    df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
-    Vb_wzjv_list.append(df)
-    
-
-
-init_guess = get_init_guess(Vb_wzjv_list)
-print('the initial guesses are', init_guess)
-popt, pcov = global_fit(Vb_wzjv_list , init_guess)
-print('the fitted parameters are',popt)
-print('the original parameters are',C_a, C_b, R_i, C_g, J_s, nA )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #%% NOW trying to add an initial fit funtion (fitting two)
@@ -312,6 +238,10 @@ print('the original parameters are',C_a, C_b, R_i, C_g, J_s, nA )
 
 # popt,pcov = curve_fit(lambda x,a,r1: circle_func(x,a,r1, 3.5e8), x[0:500], y[0:500],maxfev = 100000, p0 = [1.7e8,1.7e8])
 # #def curve_fit()
+
+
+
+
 
 
 

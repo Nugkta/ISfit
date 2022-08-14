@@ -176,8 +176,16 @@ for V in Vblist:
     #v_wz_jlist = np.column_stack((v_))
     df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
     Vb_wzjv_list.append(df)
+    
 
 #Vb_wzjv_list, the sequence of dfs to be analysed and fit  is generated here. 
+
+#%%
+
+df = Vb_wzjv_list[0]
+plt.plot(np.real(df['impedance']),-np.imag(df['impedance']),'.')
+
+
 
 #%% Finding the initial guess
 init_guess = get_init_guess(Vb_wzjv_list)
@@ -216,11 +224,11 @@ def global_fit(dfs, init_guess):
     return popt, pcov
 #%%
 
-init_guess = get_init_guess(Vb_wzjv_list)
-print('the initial guesses are', init_guess)
-popt, pcov = global_fit(Vb_wzjv_list , init_guess)
-print('the fitted parameters are',popt)
-print('the original parameters are',C_a, C_b, R_i, C_g, J_s, nA )
+# init_guess = get_init_guess(Vb_wzjv_list)
+# print('the initial guesses are', init_guess)
+# popt, pcov = global_fit(Vb_wzjv_list , init_guess)
+# print('the fitted parameters are',popt)
+# print('the original parameters are',C_a, C_b, R_i, C_g, J_s, nA )
 
 
 
@@ -241,31 +249,31 @@ print('the original parameters are',C_a, C_b, R_i, C_g, J_s, nA )
 
 
 
-#%% TRY FITTING BY SETTING BIAS VOLTAGE AS ANOTHER VARIABLE
+# #%% TRY FITTING BY SETTING BIAS VOLTAGE AS ANOTHER VARIABLE
 
-# def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
-#     z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
-#     return np.hstack([z.real, z.imag])
+# # def pero_sep(w, C_a, C_b, R_i, C_g, J_s, n,Vb):
+# #     z = pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb)[0]
+# #     return np.hstack([z.real, z.imag])
 
-#Vb_wzjv_lists = Vb_wzjv_list[0]
+# #Vb_wzjv_lists = Vb_wzjv_list[0]
 
 
-from scipy.optimize import curve_fit
-zlist_big = np.array([])
-wlist_big = np.array([])
-vlist_big = np.array([])
-for df in Vb_wzjv_list:
-    zlist_big = np.concatenate((zlist_big , df['impedance'].values))
-    wlist_big = np.concatenate((wlist_big , df['frequency'].values.real))
-    vlist_big = np.concatenate((vlist_big , df['bias voltage'].values.real))
+# from scipy.optimize import curve_fit
+# zlist_big = np.array([])
+# wlist_big = np.array([])
+# vlist_big = np.array([])
+# for df in Vb_wzjv_list:
+#     zlist_big = np.concatenate((zlist_big , df['impedance'].values))
+#     wlist_big = np.concatenate((wlist_big , df['frequency'].values.real))
+#     vlist_big = np.concatenate((vlist_big , df['bias voltage'].values.real))
 
-wvlist_big = np.stack((wlist_big,vlist_big),axis = 1)
+# wvlist_big = np.stack((wlist_big,vlist_big),axis = 1)
 
-zrlist_big = zlist_big.real 
-zilist_big = zlist_big.imag 
-Zlist_big = np.hstack([zrlist_big, zilist_big])
+# zrlist_big = zlist_big.real 
+# zilist_big = zlist_big.imag 
+# Zlist_big = np.hstack([zrlist_big, zilist_big])
 
-popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA) , wvlist_big, Zlist_big,p0 = init_guess)
+# popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R_i, C_g, J_s, nA) , wvlist_big, Zlist_big,p0 = init_guess)
 
 
 #working!!!
@@ -300,6 +308,19 @@ popt, pcov = curve_fit(lambda w,  C_a,C_b,R_i,C_g,J_s,nA: pero_sep(w, C_a,C_b, R
 
 
 
+#%%
+w = np.logspace(-20 , 20 , 1000)
+#zlist, J1 = pero_model(w, 7.2e-6, 7.2e-6, 6.7e4, 4.4e-8, 6.1e-13, 1.79, 0)
+#zlist, J1 = pero_model(w,C_a, C_b, R_i, C_g, J_s, nA, 0) 
+zlist, J1 = pero_model(w,2.03534548e-04, 8.53497697e-05, 2.59998353e+04, 4.04292147e-07, 3.36778932e-9, 1.39011012e+00, 0) 
+df0 = pd.DataFrame(columns = ['frequency','z_real','z_imag','bias voltage' , 'recomb current'])
+df0['frequency'] = w
+df0['z_real'] = zlist.real
+df0['z_imag'] = -zlist.imag #Note there is a minus sign here to keep it consistent with the experiment data.
+df0['bias voltage'] = np.zeros(len(w))
+df0['recomb current'] = np.ones(len(w)) * 6.1e-13
+
+plt.plot((df0['z_real'].values), (df0['z_imag']),'.')
 
 
 
