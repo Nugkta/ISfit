@@ -180,25 +180,3 @@ def read_imp_folder(folder_path): #the function that find all the .txt file in a
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

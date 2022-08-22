@@ -226,11 +226,366 @@ for file in glob.glob("MAPIdev2p5DRIEDLiCl25C/*.txt"):
 
 print(txtfiles)
 
+#%% solving multivariable nonlinear equation
+
+
+from scipy.optimize import fsolve
+import math
+
+def equations(p):
+    x , y , z = p
+    eq1 = x**2 - y+2
+    eq2 = x + y 
+    eq3 = z - x - y
+    return (eq1, eq2, eq3)
+
+
+
+x, y ,z  =  fsolve(equations, (1, 1,1))
 
 
 
 
 
+#%%
+
+
+
+def equations(p):
+    x, y,z = p
+    return (x+y**2-4, math.exp(x) + x*y - 3, z - x - y)
+
+x, y,z =  fsolve(equations, (1, 1,1))
+
+print (equations((x, y,z)))
+
+
+#%% learning interactive plotting
+
+
+import time
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def tellme(s):
+    print(s)
+    plt.title(s, fontsize=16)
+    plt.draw()
+
+plt.clf()
+plt.setp(plt.gca(), autoscale_on=False)
+
+tellme('You will define a triangle, click to begin')
+
+plt.waitforbuttonpress()
+
+while True:
+    pts = []
+    while len(pts) < 3:
+        tellme('Select 3 corners with mouse')
+        pts = np.asarray(plt.ginput(3, timeout=-1))
+        if len(pts) < 3:
+            tellme('Too few points, starting over')
+            time.sleep(1)  # Wait a second
+
+    ph = plt.fill(pts[:, 0], pts[:, 1], 'r', lw=2)
+
+    tellme('Happy? Key click for yes, mouse click for no')
+
+    if plt.waitforbuttonpress():
+        break
+
+
+
+#%%
+
+import matplotlib.pyplot as plt 
+import numpy as np
+from numpy.random import rand
+
+fig, ax = plt.subplots()
+ax.plot(rand(100), rand(100), picker=3)
+# 3, for example, is tolerance for picker i.e, how far a mouse click from
+# the plotted point can be registered to select nearby data point/points.
+
+def on_pick(event):
+    global points
+    line = event.artist
+    xdata, ydata = line.get_data()
+    print('selected point is:',np.array([xdata[ind], ydata[ind]]).T)
+
+cid = fig.canvas.mpl_connect('pick_event', on_pick)
+#%%
+
+import matplotlib.pyplot as plt 
+import numpy as np
+from numpy.random import rand
+
+a = rand(1,5)
+b = rand(1,5)
+plt.plot(a,b , '.')
+print('please choose the values of points')
+plt.title('please choose the values of points')
+x,y,z = plt.ginput(3)
+print('please choose another 2 points')
+
+plt.figure()
+plt.plot(a,b , '.')
+plt.title('please choose again')
+plt.show()
+x2, y2 = plt.ginput(2)
+#%%
+
+from matplotlib.widgets import LassoSelector 
+
+ax = plt.subplot()
+ax.plot(x, y,'.')
+
+def onselect(verts):
+    print(verts)
+lasso = LassoSelector(ax, onselect)
+
+
+
+
+
+#%%
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
+from matplotlib.text import Text
+from matplotlib.image import AxesImage
+import numpy as np
+from numpy.random import rand
+
+
+# Fixing random state for reproducibility
+np.random.seed(19680801)
+
+
+def pick_simple():
+    # simple picking, lines, rectangles and text
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+    ax1.set_title('click on points, rectangles or text', picker=True)
+    ax1.set_ylabel('ylabel', picker=True, bbox=dict(facecolor='red'))
+    line, = ax1.plot(rand(100), 'o', picker=True, pickradius=5)
+
+    # pick the rectangle
+    ax2.bar(range(10), rand(10), picker=True)
+    for label in ax2.get_xticklabels():  # make the xtick labels pickable
+        label.set_picker(True)
+
+    def onpick1(event):
+        if isinstance(event.artist, Line2D):
+            thisline = event.artist
+            xdata = thisline.get_xdata()
+            ydata = thisline.get_ydata()
+            ind = event.ind
+            print('onpick1 line:', np.column_stack([xdata[ind], ydata[ind]]))
+        elif isinstance(event.artist, Rectangle):
+            patch = event.artist
+            print('onpick1 patch:', patch.get_path())
+        elif isinstance(event.artist, Text):
+            text = event.artist
+            print('onpick1 text:', text.get_text())
+
+    fig.canvas.mpl_connect('pick_event', onpick1)
+
+
+def pick_custom_hit():
+    # picking with a custom hit test function
+    # you can define custom pickers by setting picker to a callable
+    # function.  The function has the signature
+    #
+    #  hit, props = func(artist, mouseevent)
+    #
+    # to determine the hit test.  if the mouse event is over the artist,
+    # return hit=True and props is a dictionary of
+    # properties you want added to the PickEvent attributes
+
+    def line_picker(line, mouseevent):
+        """
+        Find the points within a certain distance from the mouseclick in
+        data coords and attach some extra attributes, pickx and picky
+        which are the data points that were picked.
+        """
+        if mouseevent.xdata is None:
+            return False, dict()
+        xdata = line.get_xdata()
+        ydata = line.get_ydata()
+        maxd = 0.05
+        d = np.sqrt(
+            (xdata - mouseevent.xdata)**2 + (ydata - mouseevent.ydata)**2)
+
+        ind, = np.nonzero(d <= maxd)
+        if len(ind):
+            pickx = xdata[ind]
+            picky = ydata[ind]
+            props = dict(ind=ind, pickx=pickx, picky=picky)
+            return True, props
+        else:
+            return False, dict()
+
+    def onpick2(event):
+        print('onpick2 line:', event.pickx, event.picky)
+
+    fig, ax = plt.subplots()
+    ax.set_title('custom picker for line data')
+    line, = ax.plot(rand(100), rand(100), 'o', picker=line_picker)
+    fig.canvas.mpl_connect('pick_event', onpick2)
+
+
+def pick_scatter_plot():
+    # picking on a scatter plot (matplotlib.collections.RegularPolyCollection)
+
+    x, y, c, s = rand(4, 100)
+
+    def onpick3(event):
+        ind = event.ind
+        print('onpick3 scatter:', ind, x[ind], y[ind])
+
+    fig, ax = plt.subplots()
+    ax.scatter(x, y, 100*s, c, picker=True)
+    fig.canvas.mpl_connect('pick_event', onpick3)
+
+
+def pick_image():
+    # picking images (matplotlib.image.AxesImage)
+    fig, ax = plt.subplots()
+    ax.imshow(rand(10, 5), extent=(1, 2, 1, 2), picker=True)
+    ax.imshow(rand(5, 10), extent=(3, 4, 1, 2), picker=True)
+    ax.imshow(rand(20, 25), extent=(1, 2, 3, 4), picker=True)
+    ax.imshow(rand(30, 12), extent=(3, 4, 3, 4), picker=True)
+    ax.set(xlim=(0, 5), ylim=(0, 5))
+
+    def onpick4(event):
+        artist = event.artist
+        if isinstance(artist, AxesImage):
+            im = artist
+            A = im.get_array()
+            print('onpick4 image', A.shape)
+
+    fig.canvas.mpl_connect('pick_event', onpick4)
+
+
+if __name__ == '__main__':
+    pick_simple()
+    pick_custom_hit()
+    pick_scatter_plot()
+    pick_image()
+    plt.show()
+
+#%%
+from waiting import wait
+
+def is_continue(cont):
+    if cont == 'y':
+        return True 
+    return False
+
+while 
+cont = input('are you ready to continue? y/n \n')
+
+wait(lambda: is_continue(cont), timeout_seconds=120, waiting_for="something to be ready")
+
+print('kay i know you are ready')
+
+
+
+
+
+#%%
+"""
+======
+Slider
+======
+
+In this example, sliders are used to control the frequency and amplitude of
+a sine wave.
+
+See :doc:`/gallery/widgets/slider_snap_demo` for an example of having
+the ``Slider`` snap to discrete values.
+
+See :doc:`/gallery/widgets/range_slider` for an example of using
+a ``RangeSlider`` to define a range of values.
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button
+
+
+# The parametrized function to be plotted
+def f(t, amplitude, frequency):
+    return amplitude * np.sin(2 * np.pi * frequency * t)
+
+t = np.linspace(0, 1, 1000)
+
+# Define initial parameters
+init_amplitude = 5
+init_frequency = 3
+
+# Create the figure and the line that we will manipulate
+fig, ax = plt.subplots()
+line, = plt.plot(t, f(t, init_amplitude, init_frequency), lw=2)
+ax.set_xlabel('Time [s]')
+
+# adjust the main plot to make room for the sliders
+plt.subplots_adjust(left=0.25, bottom=0.25)
+
+# Make a horizontal slider to control the frequency.
+axfreq = plt.axes([0.25, 0.1, 0.65, 0.03])
+freq_slider = Slider(
+    ax=axfreq,
+    label='Frequency [Hz]',
+    valmin=0.1,
+    valmax=30,
+    valinit=init_frequency,
+)
+
+# Make a vertically oriented slider to control the amplitude
+axamp = plt.axes([0.1, 0.25, 0.0225, 0.63])
+amp_slider = Slider(
+    ax=axamp,
+    label="Amplitude",
+    valmin=0,
+    valmax=10,
+    valinit=init_amplitude,
+    orientation="vertical"
+)
+
+
+# The function to be called anytime a slider's value changes
+def update(val):
+    line.set_ydata(f(t, amp_slider.val, freq_slider.val))
+    fig.canvas.draw_idle()
+
+
+# register the update function with each slider
+freq_slider.on_changed(update)
+amp_slider.on_changed(update)
+
+# Create a `matplotlib.widgets.Button` to reset the sliders to initial values.
+resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
+button = Button(resetax, 'Reset', hovercolor='0.975')
+
+
+def reset(event):
+    freq_slider.reset()
+    amp_slider.reset()
+button.on_clicked(reset)
+
+plt.show()
+
+#############################################################################
+#
+# .. admonition:: References
+#
+#    The use of the following functions, methods, classes and modules is shown
+#    in this example:
+#
+#    - `matplotlib.widgets.Button`
+#    - `matplotlib.widgets.Slider`
 
 
 

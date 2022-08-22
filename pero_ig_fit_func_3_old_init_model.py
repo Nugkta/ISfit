@@ -3,6 +3,12 @@
 Created on Wed Aug 10 00:05:02 2022
 
 @author: pokey
+
+In this file, I use the lod way to find the initial guess, but using the user interactive way to determine the vertices and the end point of the plots.
+
+
+
+
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,33 +50,37 @@ def pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb): #w is the list of frequency r
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     return Z_tot, J1
 
-#For finding the position of extrema of the Nyquist plot
-def find_extremum(wzlist): #algorithm to find the extremums of the Nyquist plot
-    zlist = wzlist[:,1]
-    n1 = 0
-    nhlist = [] #index of local maximum(high)
-    nllist = [] #points of local minimum(low)
-    seek = 'max' #will encounter a maximum first#
-    while n1 < len(zlist) - 2:
-        while seek == 'max':
-            n1 += 1
-            if -zlist[n1].imag > -zlist[n1+1].imag:
-                nhlist.append(n1)
-                seek = 'min'
-            if n1>= len(zlist) -2:
-                break
-        while seek == 'min':
-            if n1>= len(zlist) -2:
-                #print('its bigger')
-                break
-            n1 += 1
-            #print(n1)
-            #print('zlist length', len(zlist))
-            if -zlist[n1].imag < -zlist[n1+1].imag:  #note that the imaginary part should be nagative in the Nyquist plot.
-                nllist.append(n1)
-                seek = 'max'
-    return nhlist, nllist
+def closest_node(node, nodes):
+    #nodes = np.asarray(nodes)
+    deltas = nodes - node
+    dist_2 = np.einsum('ij,ij->i', deltas, deltas)
+    return np.argmin(dist_2)
 
+
+#For finding the position of extrema of the Nyquist plot
+def find_extremum(df): #algorithm to find the extremums of the Nyquist plot
+   # wzlist = df[['frequency','impedance']].to_numpy()
+    zrlist = np.real(df['impedance'].values)
+    zilist = np.imag(df['impedance'].values)
+    zrilist = np.stack((zrlist , -zilist), axis = 1)
+    #now letting thr user to determine the rough location of the peak and local minimum
+    plt.plot(zrlist,-zilist,'.')
+    plt.title('please select the vertices')
+    vertices = plt.ginput(2)
+    plt.close()
+    plt.plot(zrlist,-zilist,'.')
+    plt.title('please select the minimum')
+    mini = plt.ginput(1)
+    plt.close()
+    # use the approximate position the user selected to find the corresponding index in the dataframe
+    nhlist = []
+    nllist = []
+    for vert in vertices:
+        num = closest_node(vert , zrilist)
+        nhlist.append(num)
+    minnum = closest_node(mini , zrilist)
+    nllist.append(minnum)
+    return nhlist,nllist
 
 
 #function below are all for finding the initial guess
@@ -83,7 +93,7 @@ def find_k(dfs): #function for finding an appropriate k (ratio of C_a/(C_a +C_b)
         #plt.plot(zlist.real , -zlist.imag,'.')
         #plt.show()
         wzlist = df[['frequency','impedance']].to_numpy()
-        nhlist, nllist= find_extremum(wzlist)
+        nhlist, nllist= find_extremum(df)
         r_reci_e = wzlist[nllist[0]][1].real
         r_rec0_e = wzlist[-1][1].real
         k = r_rec0_e / r_reci_e
@@ -134,7 +144,7 @@ def find_Cabg(dfs , k):
     C_a_e = (1 + 1/(k-1)) * C_sum  #the estimated C_a
     C_b_e = (k - 1) * C_a_e    #the estimated C_b
     C_g = C_ap[1].real       #the estiamted C_g
-    print('C_a , C_b,k are',C_a_e , C_b_e ,k)
+    #print('C_a , C_b,k are',C_a_e , C_b_e ,k)
     return C_a_e , C_b_e , C_g  
 
 #STEP 4
@@ -144,14 +154,14 @@ def find_Ri(dfs, C_a_e):
     df = dfs[-1]
     #zlist = df['impedance'].to_numpy()
     wzlist = df[['frequency','impedance']].to_numpy()
-    #nhlist, nllist= find_extremum(wzlist)
-    nhlist = np.array(argrelextrema(wzlist[:,1].imag, np.less))[0]
-    nllist = np.array(argrelextrema(wzlist[:,1].imag, np.greater))[0]
+    nhlist, nllist= find_extremum(df)
+    # nhlist = np.array(argrelextrema(wzlist[:,1].imag, np.less))[0]
+    # nllist = np.array(argrelextrema(wzlist[:,1].imag, np.greater))[0]
     whlist = wzlist[nhlist][: , 0]
     #plt.plot(wzlist[:,1].real,-wzlist[:,1].imag)
     w4 = min(whlist)
     R_i_e = 1/(w4 * C_a_e).real
-    print('C_a and C_a_e are', C_a,C_a_e)
+    #print('C_a and C_a_e are', C_a,C_a_e)
     return R_i_e
 
 #For finding the initial guess using the functions defined above
@@ -161,6 +171,7 @@ def get_init_guess(dfs):
     Js_e , nA_e = find_nA_Js(dfs , k)
     C_a_e , C_b_e , C_g_e = find_Cabg(dfs , k)
     R_i_e = find_Ri(dfs,C_a_e)
+    print('the initial guesses are', (C_a_e , C_b_e,  R_i_e ,C_g_e ,Js_e, nA_e))
     return [C_a_e , C_b_e,  R_i_e ,C_g_e ,Js_e, nA_e ]
 
 
@@ -196,7 +207,7 @@ def global_fit(dfs, init_guess):
 
 #%%
 #%% generating simulated sets of data
-# Vblist = np.linspace(0, 1, 20)      #defining the range of the bias volatage
+# Vblist = np.linspace(0, 1, 3)      #defining the range of the bias volatage
 # w = np.logspace(-6 , 10 , 1000)     #defining the range of the frequency 
 # Vb_z_list = np.empty([2 , 1000])    #initialising Vbzlist
 # Vb_wzjv_list = [] #initialising the list of dataframes, each dataframe corresponds to a specific bias voltage
@@ -223,9 +234,9 @@ def global_fit(dfs, init_guess):
 
 
 
-
-
-
+# #%%
+# df = Vb_wzjv_list[0]
+# wzlist = df[['frequency','impedance']].to_numpy()
 
 
 
