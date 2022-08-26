@@ -65,7 +65,7 @@ def find_extremum(df): #algorithm to find the extremums of the Nyquist plot
     zrilist = np.stack((zrlist , -zilist), axis = 1)
     #now letting thr user to determine the rough location of the peak and local minimum
     plt.plot(zrlist,-zilist,'.')
-    plt.title('please select the vertices')
+    plt.title('please select the maxima')
     vertices = plt.ginput(2)
     plt.close()
     plt.plot(zrlist,-zilist,'.')
@@ -197,7 +197,8 @@ def global_fit(dfs, init_guess):
     zrlist_big = zlist_big.real 
     zilist_big = zlist_big.imag 
     Zlist_big = np.hstack([zrlist_big, zilist_big])
-    popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big,p0 = init_guess,maxfev = 100000)   #fitting the function to the variables (wv(independent) and z(dependent)) for parameters
+    #popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big,bounds =((-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,0.8),(np.inf,np.inf,np.inf,np.inf,np.inf,2)) ,p0 = init_guess,maxfev = 100000)   #fitting the function to the variables (wv(independent) and z(dependent)) for parameters
+    popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big ,p0 = init_guess,maxfev = 100000)
     return popt, pcov
 
 

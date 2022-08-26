@@ -20,84 +20,139 @@ from matplotlib.image import AxesImage
 import numpy as np
 from numpy.random import rand
 from waiting import wait
+from scipy.optimize import fsolve
 
 
+#%%
 
+# def find_p(df):
+#     wzlist = df[['frequency','impedance']].to_numpy()
+#     zrlist = np.real(df['impedance'].values)
+#     zilist = np.imag(df['impedance'].values)
+#     R_n0 = zrlist[-1]   #the last element of zrlist, corresponds to the end of the curve. Might need to revise for imcomplete circle
+#     nhlist = np.array(argrelextrema(zilist, np.less))
+#     whlist = np.real(wzlist[nhlist][0][: , 0])
+#     w0 = min(whlist)
+#     C_a = 1/(R_n0 * w0)
+#     #print('R is ----', R_n0)
+#     print( zrlist[-1]  )
+#     return C_a 
 
+def closest_node(node, nodes): #the function for finding the closest point on the line to the user selected point
+    #nodes = np.asarray(nodes)
+    deltas = nodes - node
+    dist_2 = np.einsum('ij,ij->i', deltas, deltas)
+    return np.argmin(dist_2)
 
-def find_p(df):
-    wzlist = df[['frequency','impedance']].to_numpy()
+def find_extremum(df): #algorithm to find the extremums of the Nyquist plot
+   # wzlist = df[['frequency','impedance']].to_numpy()
     zrlist = np.real(df['impedance'].values)
     zilist = np.imag(df['impedance'].values)
-    R_n0 = zrlist[-1]   #the last element of zrlist, corresponds to the end of the curve. Might need to revise for imcomplete circle
-    nhlist = np.array(argrelextrema(zilist, np.less))
-    whlist = np.real(wzlist[nhlist][0][: , 0])
-    w0 = min(whlist)
-    C_a = 1/(R_n0 * w0)
-    #print('R is ----', R_n0)
-    print( zrlist[-1]  )
-    return C_a 
+    zrilist = np.stack((zrlist , -zilist), axis = 1)
+    #now letting thr user to determine the rough location of the peak and local minimum
+    plt.plot(zrlist,-zilist,'.')
+    plt.title('please select the maxima')
+    vertices = plt.ginput(2)
+    plt.close()
+    plt.plot(zrlist,-zilist,'.')
+    plt.title('please select the minimum')
+    mini = plt.ginput(1)
+    plt.close()
+    # use the approximate position the user selected to find the corresponding index in the dataframe
+    nhlist = []
+    nllist = []
+    for vert in vertices:
+        num = closest_node(vert , zrilist)
+        nhlist.append(num)
+    minnum = closest_node(mini , zrilist)
+    nllist.append(minnum)
+    return nhlist,nllist
 
-def pick_extremum(zrlist,zilist, max_min):    #function for finding the vertex interactively   max_min is for determining whether we are finding local max or min
-    if max_min == 'max' :
-        myfile = open('vertices.txt' , 'w')
-    if max_min == 'min' :
-        myfile = open('mins.txt' , 'w')
-    myfile.close()
-    # simple picking, lines, rectangles and text
-    fig, ax1 = plt.subplots(1, 1)
-    if max_min == 'max' :
-        ax1.set_title('Please click on the vertices of the Nyquist plot', picker=True)
-    if max_min == 'min' :
-        ax1.set_title('Please click on the local minimum of the Nyquist plot', picker=True)
-    ax1.set_ylabel('ylabel', picker=True, bbox=dict(facecolor='red'))
-    line, = ax1.plot(zrlist,-zilist, 'o', picker=True, pickradius=5)
-    
-    # pick the rectangle
-    # ax2.bar(range(10), rand(10), picker=True)
-    # for label in ax2.get_xticklabels():  # make the xtick labels pickable
-    #     label.set_picker(True)
-    
-    def onpick1(event,max_min):
-        # cont = 0
-        # while cont != 'y':
-        #     cont = input('Have you selected all the extremum? y/n \n')
-        if isinstance(event.artist, Line2D):
-            thisline = event.artist
-            xdata = thisline.get_xdata()
-            ydata = thisline.get_ydata()
-            ind = event.ind
-            top = (np.column_stack([xdata[ind], -ydata[ind]])[0])
-            print('onpick1 line:', top)
-            if max_min == 'max' :
-                myfile = open('vertices.txt' , 'a')
-            if max_min == 'min' :
-                myfile = open('mins.txt' , 'a')
-            myfile.write(str(top[0])+','+str(top[1])+'\n')
-            myfile.close()
-            #return np.column_stack([xdata[ind], ydata[ind]])
-        # elif isinstance(event.artist, Rectangle):
-        #     patch = event.artist
-        #     print('onpick1 patch:', patch.get_path())
-        # elif isinstance(event.artist, Text):
-        #     text = event.artist
-        #     print('onpick1 text:', text.get_text())
 
-    fig.canvas.mpl_connect('pick_event', lambda event:onpick1(event,max_min))
-    plt.show()
-    # cont = 0
-    # while cont != 'y':
-    #     cont = input('Have you selected all the extremum? y/n \n')
-    # fig.canvas.mpl_disconnect(cid)    
+def find_point(df):
+    zlist = df['impedance'].to_numpy()
+    wzlist = df[['frequency','impedance']].to_numpy()
+    nhlist, nllist= find_extremum(df)
+    R_n8 = wzlist[nllist[0]][1].real      #obtained the R_n8 parameter
+    R_n0 = wzlist[-1][1].real             #obtained the R_n0 parameter
+    whlist = np.real(wzlist[nhlist][:,0])
+    w_n = min(whlist)
+    w_t = wzlist[[nllist][0]][0][0].real                   #obtained the w_n parameter
+    w_r = max(whlist)
+    C_eff = np.real(np.imag(1/df['impedance'].values)/df['frequency'])
+    # print(C_eff)
+    #C_n = C_eff[-1]
+    C_G = C_eff[0]
+    return R_n8 , R_n0 , w_n , w_t , C_G ,w_r
+
+# def find_init_guess(R_n8 , R_n0 , w_n , C_n , C_g):
+#     q = 1.6e-19
+#     T = 300
+#     kb = 1.38e-23
+#     nJ_n = (R_n8 * q)/(kb*T)
+#     k = R_n0 - R_n8
+
+
+# def pick_extremum(zrlist,zilist, max_min):    #function for finding the vertex interactively   max_min is for determining whether we are finding local max or min
+#     if max_min == 'max' :
+#         myfile = open('vertices.txt' , 'w')
+#     if max_min == 'min' :
+#         myfile = open('mins.txt' , 'w')
+#     myfile.close()
+#     # simple picking, lines, rectangles and text
+#     fig, ax1 = plt.subplots(1, 1)
+#     if max_min == 'max' :
+#         ax1.set_title('Please click on the vertices of the Nyquist plot', picker=True)
+#     if max_min == 'min' :
+#         ax1.set_title('Please click on the local minimum of the Nyquist plot', picker=True)
+#     ax1.set_ylabel('ylabel', picker=True, bbox=dict(facecolor='red'))
+#     line, = ax1.plot(zrlist,-zilist, 'o', picker=True, pickradius=5)
+    
+#     # pick the rectangle
+#     # ax2.bar(range(10), rand(10), picker=True)
+#     # for label in ax2.get_xticklabels():  # make the xtick labels pickable
+#     #     label.set_picker(True)
+    
+#     def onpick1(event,max_min):
+#         # cont = 0
+#         # while cont != 'y':
+#         #     cont = input('Have you selected all the extremum? y/n \n')
+#         if isinstance(event.artist, Line2D):
+#             thisline = event.artist
+#             xdata = thisline.get_xdata()
+#             ydata = thisline.get_ydata()
+#             ind = event.ind
+#             top = (np.column_stack([xdata[ind], -ydata[ind]])[0])
+#             print('onpick1 line:', top)
+#             if max_min == 'max' :
+#                 myfile = open('vertices.txt' , 'a')
+#             if max_min == 'min' :
+#                 myfile = open('mins.txt' , 'a')
+#             myfile.write(str(top[0])+','+str(top[1])+'\n')
+#             myfile.close()
+#             #return np.column_stack([xdata[ind], ydata[ind]])
+#         # elif isinstance(event.artist, Rectangle):
+#         #     patch = event.artist
+#         #     print('onpick1 patch:', patch.get_path())
+#         # elif isinstance(event.artist, Text):
+#         #     text = event.artist
+#         #     print('onpick1 text:', text.get_text())
+
+#     fig.canvas.mpl_connect('pick_event', lambda event:onpick1(event,max_min))
+#     plt.show()
+#     # cont = 0
+#     # while cont != 'y':
+#     #     cont = input('Have you selected all the extremum? y/n \n')
+#     # fig.canvas.mpl_disconnect(cid)    
         
         
-def get_points(filename):    #getting the extremum out from the stored file
-    vlist = []
-    file = open(filename,'r')
-    for line in file:
-        vertex = np.array(line)
-        vlist.append(vertex)
-    return vlist
+# def get_points(filename):    #getting the extremum out from the stored file
+#     vlist = []
+#     file = open(filename,'r')
+#     for line in file:
+#         vertex = np.array(line)
+#         vlist.append(vertex)
+#     return vlist
  
 #pick_simple(zrlist,zilist)
 
@@ -135,6 +190,59 @@ jlist = np.ones(len(wzlist)) * J1
 wz_v_jlist = np.column_stack((wzlist , vlist,jlist))
 #v_wz_jlist = np.column_stack((v_))
 df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
+
+
+#%%
+R_n8 , R_n0 , w_n , w_t , C_G,w_r = find_point(df)
+#%%
+n_J_n = R_n8 *q /(kb*T)
+k = R_n0 / R_n8
+#def func(C_g,w_n,w_r,w_t,R_n8,k):
+def func(C_ion):
+    R_ion = 1 / (w_n * k * C_ion)
+    C_g = 1/ (1 / C_G - 1/C_ion)
+    eq = (R_ion * np.sqrt(C_g * (C_g + C_ion))) - 1 / w_t 
+    # C_ion = (1/(1/C_G -1/C_g))
+    # eq = 1/(k*w_n * C_ion) * ((C_g * (C_g + C_ion)))**0.5 - 1 / w_t
+    #eq = k/(w_n/(R_n8*w_r - 1/C_g))*np.sqrt(np.abs(C_g*(C_g + 1/(R_n8*w_r - 1/C_g)))) - 1/w_t
+    #eq = np.abs(k/(w_n/(R_n8*w_r - 1/C_g))*np.sqrt(C_g*(C_g + 1/(R_n8*w_r - 1/C_g)) - 1/w_t))
+    return eq
+    # return R_ion * np.sqrt(C_g * (C_g + C_ion)) 
+#%%
+root = fsolve(func, 1e-6)
+#%%
+# C_g = np.logspace(-10,10,10000)
+C_ion = np.logspace(-10,10,10000)
+list9 = np.ones(10000)
+# plt.plot(C_ion , func(C_ion)-0.9
+plt.plot(C_ion , func(C_ion)+1)
+plt.plot(C_ion , list9) 
+plt.xscale('log')
+plt.yscale('log')
+
+
+#%% theoretical values
+C_i = 1/(1/C_a +1/C_b)
+C_G_t = 1/(1/C_i +1/C_g)
+
+
+plt.plot(df['frequency'], np.real(df['impedance']))
+
+plt.xscale('log')
+plt.yscale('log')
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

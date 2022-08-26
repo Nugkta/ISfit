@@ -24,12 +24,12 @@ import glob
 
 dfs = []
 for file in glob.glob('paperdata/**.xlsx'):
-    plt.figure()
+    #plt.figure()
     df = pd.read_excel(file)
     df = df[['frequency','z_real','z_imag','bias voltage','recomb current']]
     df['z_imag'] = -df['z_imag'].values
     dfs.append(df)
-    plt.plot(df['z_real'],-df['z_imag'],'.')
+    #plt.plot(df['z_real'],-df['z_imag'],'.')
 
 
 
@@ -64,7 +64,14 @@ dfs
 
 #%%
 init_guess = pif.get_init_guess(dfs)
-
+#%%
+init_guess = [5.355788154685985e-05, 2.877587419452046e-05, 117807.98943844388, 3.221211845752507e-07, 6.343209119597507e-23, 1.5]
+#init_guess = [5.355788154685985e-05,
+ # 2.877587419452046e-05,
+ # 117807.98943844388,
+ # 3.221211845752507e-07,
+ # 1.6424828411455001e-22,
+ # 1.5]
 
 #%% testing global fit
 
@@ -139,9 +146,13 @@ def update(val,  ):
     # popt = np.insert(popt,i,sliders[i].val)
     vals = [i.val for i in sl_val_list]
     z , j = pif.pero_model(wlist,*vals,v1)
+    # print(vals)
+    # plt.figure()
+    # plt.plot(np.real(z), -np.imag(z),'x', ms=4)
     #z , j = pif.pero_model(wlist,sliders[0].val,sliders[1].val,sliders[2].val,sliders[3].val,sliders[4].val,sliders[5].val,v1)
     #z , j = pif.pero_model(wlist,*popt,v1)
     line2.set_ydata(-np.imag(z))
+    line2.set_xdata(np.real(z))
     fig.canvas.draw_idle()
 
 for key in sliders:
@@ -189,9 +200,13 @@ plt.title(r'freq vs. $\theta$(z) ')
 
 
 
+#%%Checking the values 
 
+wlist = np.logspace(-6,6,1000)
 
-
+z , j =pif.pero_model(wlist,9.248395176094367e-05, 5.459655067388845e-05, 56976.84053607925, 4.2975313043758746e-07, 1.5532621477368821e-21, 0.6192410048972403,v1)
+plt.figure()
+plt.plot(np.real(z), -np.imag(z),'x', ms=4)
 
 
 
