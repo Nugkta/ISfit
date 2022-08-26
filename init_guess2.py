@@ -194,28 +194,103 @@ df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltag
 
 #%%
 R_n8 , R_n0 , w_n , w_t , C_G,w_r = find_point(df)
+
+#%%my own formula for w_t
+C_ion = 1 / (1/C_a + 1/C_b)
+c_ion = C_ion
+R_ion = R_i
+c_g = C_g
+w_t_t = np.sqrt(C_g*(C_g + C_ion))/(R_i * C_g**2 + R_i*C_ion*C_g)
+print(w_t_t)
+w = np.logspace(-8,-2,10000)
+
+
+def funcb(w):  # the function of theta vs. freqeuncy derived in matlab
+    eq = -(1/(c_ion*w*(R_ion**2*c_g**2*w**2 + 1)) + (R_ion*c_g*(R_ion*c_g*w + R_ion*c_ion*w))/(c_ion*(R_ion**2*c_g**2*w**2 + 1)))/((R_ion*c_g)/(c_ion*(R_ion**2*c_g**2*w**2 + 1)) - (R_ion*c_g*w + R_ion*c_ion*w)/(c_ion*w*(R_ion**2*c_g**2*w**2 + 1)))
+    return eq
+
+
+plt.plot(w,funcb(w))
+plt.xscale('log')
+plt.yscale('log')
+
 #%%
+
+# plt.plot(np.real(df['frequency'].values), np.angle(np.conjugate(df['impedance']),deg = False),'.')
+# plt.plot(np.real(df['frequency'].values), (np.arctan(-np.imag(df['impedance'])/ np.real(df['impedance']))),)
+# plt.xscale('log')
+# plt.yscale('log')
+
+plt.plot(np.real(df['frequency'].values), np.angle(-(df['impedance']),deg = False),'.')
+# plt.plot(np.real(df['frequency'].values), np.angle(np.conjugate(df['impedance']),deg = False),'.')
+#plt.plot(np.real(df['frequency'].values), -(np.arctan(np.imag(df['impedance'])/ np.real(df['impedance']))),)
+plt.xscale('log')
+plt.yscale('log')
+#%%
+c = 1 + 2j
+a5 = np.arctan(np.imag(c)/ np.real(c))
+a6 =  np.angle(c,deg = True)
+print(a5, a6)
+#%%
+C_ion_t = 1/(1/C_a +1/C_b)
+w_t_t = 1/(R_i *np.sqrt(C_g*(C_g +C_ion_t)))
+#%%#%% writing initial guess function, use w_n find c_g
 n_J_n = R_n8 *q /(kb*T)
 k = R_n0 / R_n8
-#def func(C_g,w_n,w_r,w_t,R_n8,k):
-def func(C_ion):
-    R_ion = 1 / (w_n * k * C_ion)
-    C_g = 1/ (1 / C_G - 1/C_ion)
-    eq = (R_ion * np.sqrt(C_g * (C_g + C_ion))) - 1 / w_t 
+def func(C_g):
+#def func(C_ion):
+    # R_ion = 1 / (w_n * k * C_ion)
+    # C_g = 1/ (1 / C_G - 1/C_ion)
+    # eq = (R_ion * np.sqrt(C_g * (C_g + C_ion))) - 1 / w_t
+    C_ion = (1/(R_n8*w_r - 1/C_g))
+    #eq=(1/k/(w_n/(R_n8*w_r - 1/C_g))*np.sqrt(np.abs(C_g*(C_g + 1/(R_n8*w_r - 1/C_g)) ))- 1/w_t)
+    eq=(1/k/(w_n*C_ion))*np.sqrt((C_g*(C_g + C_ion) ))- 1/w_t 
+    #print(np.sqrt(C_g * (C_g + C_ion)))
     # C_ion = (1/(1/C_G -1/C_g))
     # eq = 1/(k*w_n * C_ion) * ((C_g * (C_g + C_ion)))**0.5 - 1 / w_t
-    #eq = k/(w_n/(R_n8*w_r - 1/C_g))*np.sqrt(np.abs(C_g*(C_g + 1/(R_n8*w_r - 1/C_g)))) - 1/w_t
+    #eq = k/(w_n/(R_n8*w_r - 1/C_g))*np.sqrt((C_g*(C_g + 1/(R_n8*w_r - 1/C_g)))) - 1/w_t
     #eq = np.abs(k/(w_n/(R_n8*w_r - 1/C_g))*np.sqrt(C_g*(C_g + 1/(R_n8*w_r - 1/C_g)) - 1/w_t))
     return eq
     # return R_ion * np.sqrt(C_g * (C_g + C_ion)) 
+    
+#%% writing initial guess function, use C_g find c_g
+def func(C_g):
+    C_ion = 1 / (1/C_G - 1/C_g)
+    eq=(1/k/(w_n*C_ion))*np.sqrt((C_g*(C_g + C_ion) ))- 1/w_t 
+    return eq
+    
 #%%
-root = fsolve(func, 1e-6)
+# def func(C_g):
+#     C_ion = 1/(R_n8*w_r - 1/C_g)
+#     eq=(C_g*(C_g + C_ion))
+#     return C_ion
+
+    
+ #%%   writing initial guess function, use C_g find c_ion
+def func(C_ion):
+    R_ion = 1 / (w_n * k * C_ion)
+    C_g = 1/ (1 / C_G - 1/C_ion)
+    #eq = (R_ion * np.sqrt((C_g * (C_g + C_ion)))) - 1 / w_t
+    eq = (R_ion * np.sqrt((C_g * (C_g + C_ion)))) - 1 / w_t
+    return eq     
+    
+#%%writing function testing is C_g goes negaitve
+# def func(C_ion):
+#     R_ion = 1 / (w_n * k * C_ion)
+#     C_g = 1/ (1 / C_G - 1/C_ion)
+#     eq = (R_ion * np.sqrt((C_g * (C_g + C_ion)))) - 1 / w_t
+#     return C_g    
+
+    
+#%%
+root = fsolve(func, 1e-7)
+print(root)
 #%%
 # C_g = np.logspace(-10,10,10000)
-C_ion = np.logspace(-10,10,10000)
-list9 = np.ones(10000)
+C_ion = np.logspace(-8,-2,10000)
+list9 = np.ones(10000)*10
 # plt.plot(C_ion , func(C_ion)-0.9
-plt.plot(C_ion , func(C_ion)+1)
+plt.plot(C_ion , func(C_ion)+10)
 plt.plot(C_ion , list9) 
 plt.xscale('log')
 plt.yscale('log')
@@ -230,6 +305,23 @@ plt.plot(df['frequency'], np.real(df['impedance']))
 
 plt.xscale('log')
 plt.yscale('log')
+
+
+
+
+
+
+#%%
+C_im =1/ (R_n8 *w_r - 1/4.7973e-05)
+
+
+
+
+
+
+
+
+
 
 
 

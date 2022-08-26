@@ -235,6 +235,20 @@ plt.plot(np.real(z), -np.imag(z),'x', ms=4)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #%%
 r = pif.find_Ri(dfs,3.6e-6)
 
