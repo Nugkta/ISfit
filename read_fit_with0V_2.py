@@ -82,18 +82,21 @@ print(init_guess.values())
 
 
 #%% PLOTTING OUT THE INITIAL GUESS AS MODEL INPUT TO SEE DEVIATION POSSIBLY ADD SLIDER LATER
-df = dfs[a]
+# df = dfs[a]
 
-plt.plot(np.real(df['impedance']) , -np.imag(df['impedance']) , 'g.')
-# obtaining the Nyquist plot with initial guess as input to see the goodness of fit initially
+# plt.plot(np.real(df['impedance']) , -np.imag(df['impedance']) , 'g.')
+# # obtaining the Nyquist plot with initial guess as input to see the goodness of fit initially
 simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
-plt.plot(simu_Z.real , -simu_Z.imag )
-plt.title('R_ion = 1e6')
+# plt.plot(simu_Z.real , -simu_Z.imag )
+# plt.title('R_ion = 1e6')
 
 #%% try to add the slider for R_ion
-fig , ax = plt.subplots(figsize = (8,5), ncols = 1 , nrows = 1) #opening the canvas for the plot of Nyquist plot
-line1 = plt.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4)
-line2, = plt.plot(np.real(simu_Z),-np.imag(simu_Z),'r--')
+simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
+fig , ((ax ,ax2),(ax3,ax4)) = plt.subplots(2 , 2,figsize = (8,10)) #opening the canvas for the plot of Nyquist plot
+ax = plt.subplot(212)
+line1 = ax.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4,label = 'experiment data')
+line2, = ax.plot(np.real(simu_Z),-np.imag(simu_Z),'r--', label = 'initial guess')
+ax.legend()
 ax.set_xlabel('Z\'')
 ax.set_ylabel('Z\'\'')
 plt.subplots_adjust(left=0.15, bottom=.2)          #adjusting the position of the main plot to leave room for then
@@ -149,10 +152,11 @@ button_R.on_clicked(reset_R_ion)
 
 #%%
 simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
-fig, ax = plt.subplots(figsize=(5, 5),ncols = 1 , nrows = 1)
+fig, ax = plt.subplots(figsize=(8, 5),ncols = 1 , nrows = 1)
 
-line1 = plt.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4)
-line2, = plt.plot(np.real(simu_Z),-np.imag(simu_Z),'r--')
+line1 = ax.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4,label = 'experiment data')
+line2, = ax.plot(np.real(simu_Z),-np.imag(simu_Z),'r--',label = 'initial guess')
+ax.legend()
 ax.set_xlabel('Z\'')
 ax.set_ylabel('Z\'\'')
 plt.subplots_adjust(left=0.25, bottom=.5)
