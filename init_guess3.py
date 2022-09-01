@@ -77,6 +77,22 @@ class init_guess_class:
                 self.C_g ,
                 self.J_s ,
                 self.nA ]
+    def update_param(self,param,value):
+        setattr(self,param,value)
+        # if param == 'C_A':
+        #     self.C_A = value
+        # if param == 'C_B':
+        #     self.C_B = value
+        # if param == 'C_g':
+        #     self.C_g = value
+        # if param == 'R_ion':
+        #     self.R_ion = value
+        # if param == 'J_s':
+        #     self.J_s = value
+        # if param == 'nA':
+        #     self.nA = value
+            
+            
 
 
 

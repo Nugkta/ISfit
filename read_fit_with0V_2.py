@@ -19,7 +19,12 @@ import pandas as pd
 from scipy.signal import argrelextrema
 import glob 
 import init_guess3 as ig3
+from matplotlib.widgets import TextBox,Slider, Button
 
+def get_key(val , my_dict):
+    for key, value in my_dict.items():
+        if val == value:
+            return key
 #%%
 
 dfs = []
@@ -211,7 +216,34 @@ def reset_R_ion(event):
     R_slider.reset()
 button_R.on_clicked(reset_R_ion)
 
+def submit(text,points):
+    R_ion = float(text)
+    iglist = ig3.init_guess_slider(dfs[a],points,R_ion)
+    init_guess.update_all(iglist)
+    simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
+    #first plot
+    line2.set_ydata(-np.imag(simu_Z))
+    line2.set_xdata(np.real(simu_Z))
+    #second subplot
+    line_Ceff_ig.set_ydata(np.imag(1 / simu_Z) / wlist)
+    line_zr_ig.set_ydata(np.real(simu_Z))
+    # #third subplot
+    line_absz_ig.set_ydata(np.abs(simu_Z))
+    line_t_ig.set_ydata(np.angle(simu_Z))
+    #revere the log scale in slider to normal scale
+    R_slider.set_val(np.log(R_ion))
+    amp = np.exp(R_slider.val)
+    R_slider.valtext.set_text('%.2e'%amp)
+    fig.canvas.draw_idle()
+    
+    
 
+initial_text = ""
+axbox = plt.axes([0.1, 0.07, 0.04, 0.03])
+text_box = TextBox(axbox, 'Set R_ion manually: ', initial=initial_text)
+text_box.on_submit(lambda text: submit(text, crit_points))
+
+plt.show()
 
 #%%
 
@@ -298,27 +330,41 @@ ax_t.tick_params(axis='y', colors='orange')
 #change only the C_a in popt now as a test
 # axC_a = plt.axes([0.25, 0.5, 0.65, 0.03])
 ax_list = {} 
+ax_list_t = {} #stores axis postion for the textbox
 sliders = {}
+textboxs = {}
 param_name = ['C_a', 'C_b', 'R_i', 'C_g', 'J_s', 'nA' ]
-
+param_dict ={'C_A':0, 'C_B':1, 'R_ion':2, 'C_g':3, 'J_s':4, 'nA':5}    #establish the correspondance between the order and the name of the parameters
+range_list = [(1/3 * init_guess.C_A, 3 * init_guess.C_A ),
+              (1/3 * init_guess.C_B, 3 * init_guess.C_B),
+              (1/10 * init_guess.R_ion, 10 * init_guess.R_ion),
+              (1/10 * init_guess.C_g, 10 * init_guess.C_g),
+              (1/2 * init_guess.J_s, 3 * init_guess.J_s),
+              (1/1.5 * init_guess.nA, 1.5 * init_guess.nA)
+              ]
 
 
 
 for i in range(0,6):
     ax_list[i] = plt.axes([0.25, 0.03 * (i+2)-0.02, 0.5, 0.02])
+    ax_list_t[i] = plt.axes([0.1, 0.03 * (i+2)-0.02, 0.03, 0.02])
     sliders[i] = Slider(
         ax = ax_list[i], 
         label = 'the value of ' + param_name[i],
-        valmin = 1/3 * init_guess.values()[i],
-        valmax = 3 * init_guess.values()[i],
+        valmin = range_list[i][0],
+        valmax = range_list[i][1],
         valinit = init_guess.values()[i],
         )
+    textboxs[i] = TextBox(ax_list_t[i], 
+                          'Set '+ param_name[i]+' manually: ',
+                          initial='')
 
 sl_val_list =[]
+
 for key in sliders:
     sl_val_list.append(sliders[key])
 
-def update(val,  ):
+def update(val,  ):            #function called when the value of slider is updated
     # popt = np.delete(popt , i)
     # popt = np.insert(popt,i,sliders[i].val)
     vals = [i.val for i in sl_val_list]
@@ -341,10 +387,47 @@ def update(val,  ):
     fig.canvas.draw_idle()
     
 
+def submit_2(text,points,param,init_guess):   #param shows which parameter is updated
+    print(param)
+    new_value = float(text)                 #convert the string input in textbox to float
+    init_guess.update_param(param,new_value)   #only update the value of which the textbox is updated
+    simu_Z , j = pif.pero_model(wlist,*init_guess.values(),v1)
+    #first plot
+    line2.set_ydata(-np.imag(simu_Z))
+    line2.set_xdata(np.real(simu_Z))
+    #second subplot
+    line_Ceff_ig.set_ydata(np.imag(1 / simu_Z) / wlist)
+    line_zr_ig.set_ydata(np.real(simu_Z))
+    # #third subplot
+    line_absz_ig.set_ydata(np.abs(simu_Z))
+    line_t_ig.set_ydata(np.angle(simu_Z))
+    #revere the log scale in slider to normal scale
+    sliders[param_dict[param]].set_val(new_value)
+    # amp = np.exp(R_slider.val)
+    # R_slider.valtext.set_text('%.2e'%amp)
+    fig.canvas.draw_idle()
+    
+    
+# for key in textboxs:  
+    # print(get_key(key,param_dict ))
+textboxs[0].on_submit(lambda text: submit_2(text, crit_points,'C_A',init_guess))
+textboxs[1].on_submit(lambda text: submit_2(text, crit_points,'C_B',init_guess))
+textboxs[2].on_submit(lambda text: submit_2(text, crit_points,'R_ion',init_guess))
+textboxs[3].on_submit(lambda text: submit_2(text, crit_points,'C_g',init_guess))
+textboxs[4].on_submit(lambda text: submit_2(text, crit_points,'J_s',init_guess))
+textboxs[5].on_submit(lambda text: submit_2(text, crit_points,'nA',init_guess))
+    # textboxs[key].on_submit(lambda text: submit_2(text, crit_points,'C_A',init_guess))
+
+
+
+
 for key in sliders:
     #print(type(sliders[key]))
     sliders[key].on_changed(lambda val: update(val))
-    
+
+
+
+
 resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
 button = Button(resetax, 'Reset', hovercolor='0.975')
 def reset(event):
