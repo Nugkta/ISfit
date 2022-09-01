@@ -84,30 +84,90 @@ print(init_guess.values())
 #%% PLOTTING OUT THE INITIAL GUESS AS MODEL INPUT TO SEE DEVIATION POSSIBLY ADD SLIDER LATER
 # df = dfs[a]
 
-# plt.plot(np.real(df['impedance']) , -np.imag(df['impedance']) , 'g.')
-# # obtaining the Nyquist plot with initial guess as input to see the goodness of fit initially
-simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
+# # plt.plot(np.real(df['impedance']) , -np.imag(df['impedance']) , 'g.')
+# # # obtaining the Nyquist plot with initial guess as input to see the goodness of fit initially
+# simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
 # plt.plot(simu_Z.real , -simu_Z.imag )
 # plt.title('R_ion = 1e6')
 
 #%% try to add the slider for R_ion
+df = dfs[a]
 simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
-fig , ((ax ,ax2),(ax3,ax4)) = plt.subplots(2 , 2,figsize = (8,10)) #opening the canvas for the plot of Nyquist plot
-ax = plt.subplot(212)
-line1 = ax.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4,label = 'experiment data')
-line2, = ax.plot(np.real(simu_Z),-np.imag(simu_Z),'r--', label = 'initial guess')
-ax.legend()
-ax.set_xlabel('Z\'')
-ax.set_ylabel('Z\'\'')
+fig , ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(2 , 2,figsize = (20,10)) #opening the canvas for the plot of Nyquist
+
+
+#Nyquist plot
+ax3 = plt.subplot(212)
+line1, = ax3.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4,label = 'experiment data')
+line2, = ax3.plot(np.real(simu_Z),-np.imag(simu_Z),'r--', label = 'initial guess')
+ax3.legend()
+ax3.set_xlabel('Z\'')
+ax3.set_ylabel('Z\'\'')
+
+
+
+#real part plot
+line_zr, = ax1.plot(df['frequency'],np.real(df['impedance'].values),'b.',ms = 4, label = 'experiment Z\' ')
+line_zr_ig, = ax1.plot(wlist,np.real(simu_Z),'c--', label = ' initial guess Z\'')
+ax1.set_xscale('log')
+ax1.set_ylabel('Z\'')
+ax1.set_xlabel(r'frequency $\omega$')
+ax1.set_title('real Z, effective capacitance vs. frequency')
+ax1.legend(loc = 3)
+ax1.spines['left'].set_color('c')
+ax1.tick_params(axis='y', colors='c')
+
+#effective ccapacitance
+
+ax_eff = ax1.twinx()
+C_eff = np.imag(1 / df['impedance']) / df['frequency']
+C_eff_ig = np.imag(1 / simu_Z) / wlist
+line_Ceff, = ax_eff.plot(df['frequency'],C_eff,'.',ms = 4,color = 'peru', label = 'experiment effective capacitance')
+line_Ceff_ig, = ax_eff.plot(wlist , C_eff_ig,'--',ms = 4,color = 'orange', label = 'initial guess effective capacitance')
+ax_eff.set_yscale('log')
+ax_eff.set_xscale('log')
+ax_eff.set_ylabel(r'Im($Z^{-1}$)$\omega^{-1}$')
+ax_eff.legend()
+ax_eff.spines['right'].set_color('orange')
+ax_eff.tick_params(axis='y', colors='orange')
+
+
+#abs Z part plot
+line_absz, = ax2.plot(df['frequency'],np.abs(df['impedance'].values),'b.',ms = 4, label = 'experiment |Z| ')
+line_absz_ig, = ax2.plot(wlist,np.abs(simu_Z),'c--', label = ' initial guess |Z|')
+ax2.set_xscale('log')
+ax2.set_ylabel('|Z|')
+ax2.set_xlabel(r'frequency $\omega$')
+ax2.set_title(r'|Z|, $\theta$ vs. frequency')
+ax2.legend(loc = 3)
+ax2.spines['left'].set_color('c')
+ax2.tick_params(axis='y', colors='c')
+
+#theta plot
+
+ax_t = ax2.twinx()
+line_t, = ax_t.plot(df['frequency'],np.angle(df['impedance'].values),'.',ms = 4,color = 'peru', label = r'experiment $\theta$')
+line_t_ig, = ax_t.plot(wlist , np.angle(simu_Z),'--',ms = 4,color = 'orange', label = r'initial guess $\theta$')
+ax_t.set_xscale('log')
+ax_t.set_ylabel(r'$\theta$')
+ax_t.legend()
+ax_t.spines['right'].set_color('orange')
+ax_t.tick_params(axis='y', colors='orange')
+
+
+
+#Now adding the slider function
+
 plt.subplots_adjust(left=0.15, bottom=.2)          #adjusting the position of the main plot to leave room for then
 
 ax_r = plt.axes([0.25, 0.07, 0.55, 0.03])
 
-R_slider = Slider(
+R_slider = Slider(                              #the slider for the effect of the change of R_ion
     ax = ax_r, 
     label = 'R_ion',
-    valmin = np.log(0.05 * init_guess.values()[2]),
-    valmax = np.log(20 * init_guess.values()[2]),
+    #setting the range of the slider, log because we need to investigate in range of orders of magnitude
+    valmin = np.log(0.02 * init_guess.values()[2]),
+    valmax = np.log(50 * init_guess.values()[2]),
     valinit = np.log(init_guess.values()[2]),
     )
 
@@ -119,8 +179,16 @@ def update_R_ion(val,points):
     iglist = ig3.init_guess_slider(dfs[a],points,R_ion)
     init_guess.update_all(iglist)
     simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
+    #first plot
     line2.set_ydata(-np.imag(simu_Z))
     line2.set_xdata(np.real(simu_Z))
+    #second subplot
+    line_Ceff_ig.set_ydata(np.imag(1 / simu_Z) / wlist)
+    line_zr_ig.set_ydata(np.real(simu_Z))
+    # #third subplot
+    line_absz_ig.set_ydata(np.abs(simu_Z))
+    line_t_ig.set_ydata(np.angle(simu_Z))
+    #revere the log scale in slider to normal scale
     amp = np.exp(R_slider.val)
     R_slider.valtext.set_text('%.2e'%amp)
     fig.canvas.draw_idle()
@@ -136,30 +204,97 @@ R_slider.on_changed(lambda val: update_R_ion(val , crit_points))
 # R_slider.on_changed(on_change)
 resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
 button_R = Button(resetax, 'Reset', hovercolor='0.975')
+
+
+
 def reset_R_ion(event):
     R_slider.reset()
 button_R.on_clicked(reset_R_ion)
 
 
 
+#%%
 
-# NOW TRY TO ADD SLIDERS FOR ALL PARAMETERS IN THE INITIAL GUESSS
 
 #notet that the R_ion here causes change differenetly from the previous slider because the previous R will cause change on Jn and nA simultaneously but the R_ion is not connected to the other parameters.
 
 
 
+#  NOTE: After sliding the R_ion, the value of it in initial guess will be updated and stored in real time.
 
-#%%
+
+
+#%%SLIDERS FOR ALL PARAMETERS IN THE INITIAL GUESSS
+# NOW TRY TO ADD SLIDERS FOR ALL PARAMETERS IN THE INITIAL GUESS
+# init_guess.update_all([1.2688190813857057e-08, 6.635083668405059e-09, 600000000.0, 4.24144833113637e-07, 6.669776935905864e-11, 1.5479152046376812])
+v1 = v[a]
 simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v[a])
-fig, ax = plt.subplots(figsize=(8, 5),ncols = 1 , nrows = 1)
+fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(18, 12),ncols = 2 , nrows = 2)
 
-line1 = ax.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4,label = 'experiment data')
-line2, = ax.plot(np.real(simu_Z),-np.imag(simu_Z),'r--',label = 'initial guess')
-ax.legend()
-ax.set_xlabel('Z\'')
-ax.set_ylabel('Z\'\'')
-plt.subplots_adjust(left=0.25, bottom=.5)
+
+#Nyquist plot 
+ax_nyq = plt.subplot(212)
+line1, = ax_nyq.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4,label = 'experiment data')
+line2, = ax_nyq.plot(np.real(simu_Z),-np.imag(simu_Z),'r--',label = 'initial guess')
+ax_nyq.legend()
+ax_nyq.set_xlabel('Z\'')
+ax_nyq.set_ylabel('Z\'\'')
+plt.subplots_adjust(left=0.1, bottom=.26)
+
+line_zr, = ax1.plot(df['frequency'],np.real(df['impedance'].values),'b.',ms = 4, label = 'experiment Z\' ')
+line_zr_ig, = ax1.plot(wlist,np.real(simu_Z),'c--', label = ' initial guess Z\'')
+ax1.set_xscale('log')
+ax1.set_ylabel('Z\'')
+ax1.set_xlabel(r'frequency $\omega$')
+ax1.set_title('real Z, effective capacitance vs. frequency')
+ax1.legend(loc = 3, fontsize = 'small')
+ax1.spines['left'].set_color('c')
+ax1.tick_params(axis='y', colors='c')
+
+#effective ccapacitance
+
+ax_eff = ax1.twinx()
+C_eff = np.imag(1 / df['impedance']) / df['frequency']
+C_eff_ig = np.imag(1 / simu_Z) / wlist
+line_Ceff, = ax_eff.plot(df['frequency'],C_eff,'.',ms = 4,color = 'peru', label = 'experiment effective capacitance')
+line_Ceff_ig, = ax_eff.plot(wlist , C_eff_ig,'--',ms = 4,color = 'orange', label = 'initial guess effective capacitance')
+ax_eff.set_yscale('log')
+ax_eff.set_xscale('log')
+ax_eff.set_ylabel(r'Im($Z^{-1}$)$\omega^{-1}$')
+ax_eff.legend(loc = 1, fontsize = 'small')
+ax_eff.spines['right'].set_color('orange')
+ax_eff.tick_params(axis='y', colors='orange')
+
+
+#abs Z part plot
+line_absz, = ax2.plot(df['frequency'],np.abs(df['impedance'].values),'b.',ms = 4, label = 'experiment |Z| ')
+line_absz_ig, = ax2.plot(wlist,np.abs(simu_Z),'c--', label = ' initial guess |Z|')
+ax2.set_xscale('log')
+ax2.set_ylabel('|Z|')
+ax2.set_xlabel(r'frequency $\omega$')
+ax2.set_title(r'|Z|, $\theta$ vs. frequency')
+ax2.legend(loc = 3, fontsize = 'small')
+ax2.spines['left'].set_color('c')
+ax2.tick_params(axis='y', colors='c')
+
+#theta pllot
+
+ax_t = ax2.twinx()
+line_t, = ax_t.plot(df['frequency'],np.angle(df['impedance'].values),'.',ms = 4,color = 'peru', label = r'experiment $\theta$')
+line_t_ig, = ax_t.plot(wlist , np.angle(simu_Z),'--',ms = 4,color = 'orange', label = r'initial guess $\theta$')
+ax_t.set_xscale('log')
+ax_t.set_ylabel(r'$\theta$')
+ax_t.legend(loc = 1, fontsize = 'small')
+ax_t.spines['right'].set_color('orange')
+ax_t.tick_params(axis='y', colors='orange')
+
+
+
+
+
+
+
+
 #change only the C_a in popt now as a test
 # axC_a = plt.axes([0.25, 0.5, 0.65, 0.03])
 ax_list = {} 
@@ -170,7 +305,7 @@ param_name = ['C_a', 'C_b', 'R_i', 'C_g', 'J_s', 'nA' ]
 
 
 for i in range(0,6):
-    ax_list[i] = plt.axes([0.25, 0.05 * (i+2)-0.02, 0.55, 0.03])
+    ax_list[i] = plt.axes([0.25, 0.03 * (i+2)-0.02, 0.5, 0.02])
     sliders[i] = Slider(
         ax = ax_list[i], 
         label = 'the value of ' + param_name[i],
@@ -188,14 +323,21 @@ def update(val,  ):
     # popt = np.insert(popt,i,sliders[i].val)
     vals = [i.val for i in sl_val_list]
     init_guess.update_all(vals)
-    z , j = pif.pero_model(wlist,*vals,v1)
+    simu_Z , j = pif.pero_model(wlist,*vals,v1)
     # print(vals)
     # plt.figure()
     # plt.plot(np.real(z), -np.imag(z),'x', ms=4)
     #z , j = pif.pero_model(wlist,sliders[0].val,sliders[1].val,sliders[2].val,sliders[3].val,sliders[4].val,sliders[5].val,v1)
     #z , j = pif.pero_model(wlist,*popt,v1)
-    line2.set_ydata(-np.imag(z))
-    line2.set_xdata(np.real(z))
+    line2.set_ydata(-np.imag(simu_Z))
+    line2.set_xdata(np.real(simu_Z))
+    #second subplot
+    line_Ceff_ig.set_ydata(np.imag(1 / simu_Z) / wlist)
+    line_zr_ig.set_ydata(np.real(simu_Z))
+    # #third subplot
+    line_absz_ig.set_ydata(np.abs(simu_Z))
+    line_t_ig.set_ydata(np.angle(simu_Z))
+    #revere the log scale in slider to normal scale
     fig.canvas.draw_idle()
     
 
