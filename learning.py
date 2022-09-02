@@ -591,7 +591,13 @@ plt.show()
 
 
 
+#%%
+y = 3
 
+def add1():
+    window['y'] = 20
+
+add1()
 
 
 
