@@ -92,9 +92,18 @@ class init_guess_class:
         # if param == 'nA':
         #     self.nA = value
             
-            
-
-
+class fix_variables():
+    def __init__(self):
+        self.C_A = False
+        self.C_B = False
+        self.R_ion = False
+        self.C_g = False
+        self.J_s = False
+        self.nA = False
+    def update_param(self,param,value):
+        setattr(self,param,value)
+    def get(self,param):
+        return getattr(self, param)
 
 
 def closest_node(node, nodes): #the function for finding the closest point on the line to the user selected point
