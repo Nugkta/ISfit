@@ -26,13 +26,13 @@ def Zcap(c, w): #returns the impedance of a capacitor
     return 1 / (1j * w * c)
 
 VT = 0.026 # = kT/q
-C_a = 2e-7
-C_b = 2e-7
-R_i = 5e8
-Vb = .2
-C_g = 2.8e-8  
-J_s = 7.1e-11
-nA = 1.93
+# C_a = 2e-7
+# C_b = 2e-7
+# R_i = 5e8
+# Vb = .2
+# C_g = 2.8e-8  
+# J_s = 7.1e-11
+# nA = 1.93
 q = 1.6e-19
 T = 300
 kb = 1.38e-23
@@ -58,22 +58,38 @@ kb = 1.38e-23
 
 
 
-def pero_model(w, C_A,C_B,R_ion,C_g,J_s,nA, Vb): #w is the list of frequency range
+# def pero_model(w, C_A,C_B,R_ion,C_g,J_s,nA, Vb): #w is the list of frequency range
 
-    # Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_i)
-    # Z_ion = (Zcap(C_A , w) + Zcap(C_b , w) + Z_d) #the impedance of the ionic branch
-    # v1 = Vb * (C_A / (C_A + C_b))
-    # J1 = J_s*(np.e**((v1 - 0) / (nA * VT)) - np.e**((v1 - Vb) / (nA * VT))) #the current densitf of the electronic branch
-    # #print('the power in J1 is', (v1 - Vb) / (n * VT))
-    # #J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - 0)
-    # Jrec = J_s * np.e**(v1 / (nA * VT))        #the recombination current and the generation current
-    # Jgen = J_s * np.e**((v1 - Vb) / (nA * VT))
-    # A = Zcap(C_A , w)/ Z_ion
-    # djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
-    # Z_elct = 1 / djdv #the impedance of the electronic branch
-    # Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
+#     # Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_i)
+#     # Z_ion = (Zcap(C_A , w) + Zcap(C_b , w) + Z_d) #the impedance of the ionic branch
+#     # v1 = Vb * (C_A / (C_A + C_b))
+#     # J1 = J_s*(np.e**((v1 - 0) / (nA * VT)) - np.e**((v1 - Vb) / (nA * VT))) #the current densitf of the electronic branch
+#     # #print('the power in J1 is', (v1 - Vb) / (n * VT))
+#     # #J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - 0)
+#     # Jrec = J_s * np.e**(v1 / (nA * VT))        #the recombination current and the generation current
+#     # Jgen = J_s * np.e**((v1 - Vb) / (nA * VT))
+#     # A = Zcap(C_A , w)/ Z_ion
+#     # djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
+#     # Z_elct = 1 / djdv #the impedance of the electronic branch
+#     # Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
     
     
+#     Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_i)
+#     Z_ion = (Zcap(C_A , w) + Zcap(C_B , w) + Z_d) #the impedance of the ionic branch
+#     v1 = Vb * (C_A / (C_A + C_B))
+#     J1 = J_s*(np.e**((v1 - 0) / (nA * VT)) - np.e**((v1 - Vb) / (nA * VT))) #the current densitf of the electronic branch
+#     #print('the power in J1 is', (v1 - Vb) / (n * VT))
+#     #J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - 0)
+#     Jrec = J_s * np.e**(v1 / (nA * VT))        #the recombination current and the generation current
+#     Jgen = J_s * np.e**((v1 - Vb) / (nA * VT))
+#     A = Zcap(C_a , w)/ Z_ion
+#     djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
+#     Z_elct = 1 / djdv #the impedance of the electronic branch
+#     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
+    
+    
+    
+def pero_model(w, C_A, C_B, R_i, C_g, J_s, nA, Vb): #w is the list of frequency range
     Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_i)
     Z_ion = (Zcap(C_A , w) + Zcap(C_B , w) + Z_d) #the impedance of the ionic branch
     v1 = Vb * (C_A / (C_A + C_B))
@@ -86,23 +102,7 @@ def pero_model(w, C_A,C_B,R_ion,C_g,J_s,nA, Vb): #w is the list of frequency ran
     djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
-    
-    
-    
-# def pero_model(w, C_a, C_b, R_i, C_g, J_s, n, Vb): #w is the list of frequency range
-#     Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_i)
-#     Z_ion = (Zcap(C_a , w) + Zcap(C_b , w) + Z_d) #the impedance of the ionic branch
-#     v1 = Vb * (C_a / (C_a + C_b))
-#     J1 = J_s*(np.e**((v1 - 0) / (n * VT)) - np.e**((v1 - Vb) / (n * VT))) #the current densitf of the electronic branch
-#     #print('the power in J1 is', (v1 - Vb) / (n * VT))
-#     #J1 = J_s*(np.exp((v1 - 0) / (n * VT)) - 0)
-#     Jrec = J_s * np.e**(v1 / (n * VT))        #the recombination current and the generation current
-#     Jgen = J_s * np.e**((v1 - Vb) / (n * VT))
-#     A = Zcap(C_a , w)/ Z_ion
-#     djdv = (1 - A) * Jrec / (n * VT) + A * Jgen / (n * VT)
-#     Z_elct = 1 / djdv #the impedance of the electronic branch
-#     Z_tot = 1 / (1/Z_ion + 1/ Z_elct)
-#     return Z_tot, J1    
+    return Z_tot, J1    
     
     
     
@@ -127,6 +127,7 @@ def pero_sep(wvb,C_A,C_B,R_ion,C_g,J_s,nA,vb):
 
 #the function for global fitting, need to input the list of df and the initial guess obtained above. 
 def global_fit(dfs, init_guess, fix_index):
+    print(fix_index)
     #define parameters:
     # params = Parameters()
     # params.add('C_A',   value= init_guess[0],min = 0, max = 1e-2)
@@ -136,7 +137,7 @@ def global_fit(dfs, init_guess, fix_index):
     # params.add('J_s', value= init_guess[4],min = 0, max = 1e-2)
     # params.add('nA', value= init_guess[5],min =0.5,max = 2)
     
-    
+    params_list = ['C_A' , 'C_B', "R_ion", 'C_g', 'J_s' , 'nA']
     zlist_big = np.array([])      #because we are fitting the w,v to z, need to stack up all the w v and z list from different Vb each to be one big list. 
     wlist_big = np.array([])
     vlist_big = np.array([])
@@ -155,13 +156,16 @@ def global_fit(dfs, init_guess, fix_index):
     pars = mod.make_params(C_A=init_guess[0],C_B=init_guess[1],R_ion=init_guess[2],C_g=init_guess[3],J_s=init_guess[4],nA=init_guess[5])
     
     # print(f'independent variables: {mod.independent_vars}')
-    print(mod.independent_vars)
-    
+    #print(mod.independent_vars)
+    for i in fix_index:    
+        pars[params_list[i]].max = init_guess[i] *1.001
+        pars[params_list[i]].min = init_guess[i] *0.999
+
     pars.pretty_print()
     # print(pars.keys())
     # result = mod.fit(wvlist_big[:,0], Zlist_big,C_A=init_guess[0],C_B=init_guess[1],R_ion=init_guess[2],C_g=init_guess[3],J_s=init_guess[4],nA=init_guess[5])
-    print(np.shape(wvlist_big[:,0]),np.shape(Zlist_big))
-    result = mod.fit(Zlist_big,pars, wvb =wvlist_big[:,0] ,weights = Zlist_big)
+    #print(np.shape(wvlist_big[:,0]),np.shape(Zlist_big))
+    result = mod.fit(Zlist_big,pars, wvb =wvlist_big[:,0] )
     #print(pars.name)
 
 
@@ -192,7 +196,7 @@ for key in result_dict:
     popt.append( result_dict[key])
 
 
-#%% testing if the model itself is working correctly
+# #%% testing if the model itself is working correctly
 # ig= init_guess.values()
 # mod = Model(lambda wvb,C_A,C_B,R_ion,C_g,J_s,nA: pero_sep(wvb,C_A,C_B,R_ion,C_g,J_s,nA,v))
 # pars = mod.make_params(C_A=ig[0],C_B=ig[1],R_ion=ig[2],C_g=ig[3],J_s=ig[4],nA=ig[5])
@@ -203,7 +207,7 @@ for key in result_dict:
 # z,j = pero_model(wlist, ig[0],ig[1],ig[2],ig[3],ig[4],ig[5], v)
 
 
-# # plt.plot(z.real,-z.imag,'.')
+# plt.plot(z.real,-z.imag,'.')
 
 
 
@@ -225,6 +229,7 @@ from matplotlib.widgets import TextBox,Slider, Button,CheckButtons
 
 z , j = pif.pero_model(wlist,*popt,v)
 z_ig, j_ig = pif.pero_model(wlist,*init_guess.values(),v)
+
 
 
 
