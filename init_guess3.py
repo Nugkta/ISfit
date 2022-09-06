@@ -92,7 +92,7 @@ class init_guess_class:
         # if param == 'nA':
         #     self.nA = value
             
-class fix_variables():
+class fix_params():     #class that store the parameters to fix in the fit
     def __init__(self):
         self.C_A = False
         self.C_B = False
@@ -104,6 +104,18 @@ class fix_variables():
         setattr(self,param,value)
     def get(self,param):
         return getattr(self, param)
+    def fix_index(self):     #find the index of variables to fix
+        attr_list = [self.C_A, 
+                self.C_B ,
+                self.R_ion ,
+                self.C_g ,
+                self.J_s ,
+                self.nA ]
+        index = []
+        for i in range(0,6):
+            if attr_list[i] == True:
+                index.append(i)
+        return index
 
 
 def closest_node(node, nodes): #the function for finding the closest point on the line to the user selected point

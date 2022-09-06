@@ -19,7 +19,7 @@ import pandas as pd
 from scipy.signal import argrelextrema
 import glob 
 import init_guess3 as ig3
-from matplotlib.widgets import TextBox,Slider, Button
+from matplotlib.widgets import TextBox,Slider, Button,CheckButtons
 
 def get_key(val , my_dict):
     for key, value in my_dict.items():
@@ -74,7 +74,8 @@ wlist = np.logspace(-6,6,1000)
 
 a = 2 #change this to change the set of data to fit
 v = [0,.795,.846,.894]
-
+df = dfs[a]
+v = v[a]
 crit_points = ig3.find_point(dfs[a])
 
 iglist = ig3.init_guess(dfs[a],crit_points) #getting the initial guess by ig3 functions
@@ -98,7 +99,7 @@ print(init_guess.values())
 #%% try to add the slider for R_ion
 df = dfs[a]
 v = v[a]
-
+#%%
 
 simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v)
 fig , ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(2 , 2,figsize = (20,10)) #opening the canvas for the plot of Nyquist
@@ -262,7 +263,7 @@ plt.show()
 #%%SLIDERS FOR ALL PARAMETERS IN THE INITIAL GUESSS
 # NOW TRY TO ADD SLIDERS FOR ALL PARAMETERS IN THE INITIAL GUESS
 # init_guess.update_all([1.2688190813857057e-08, 6.635083668405059e-09, 600000000.0, 4.24144833113637e-07, 6.669776935905864e-11, 1.5479152046376812])
-v = v
+
 simu_Z, simu_J1 = pif.pero_model(wlist,*init_guess.values(),v)
 fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(18, 12),ncols = 2 , nrows = 2)
 
@@ -338,7 +339,7 @@ ax_list = {}
 ax_list_t = {} #stores axis postion for the textbox
 sliders = {}
 textboxs = {}
-param_name = ['C_a', 'C_b', 'R_i', 'C_g', 'J_s', 'nA' ]
+param_name = ['C_A', 'C_B', 'R_ion', 'C_g', 'J_s', 'nA' ]
 param_dict ={'C_A':0, 'C_B':1, 'R_ion':2, 'C_g':3, 'J_s':4, 'nA':5}    #establish the correspondance between the order and the name of the parameters
 range_list = [(1/3 * init_guess.C_A, 3 * init_guess.C_A ),
               (1/3 * init_guess.C_B, 3 * init_guess.C_B),
@@ -443,12 +444,36 @@ plt.show()
 
 
 
+#define bottons to fix the initial guess while doing curve_fit
+rax = plt.axes([0.1, 0.5, 0.1, 0.3])
+lines = [line1, line_zr,line_Ceff,line_absz,line_t]
+labels = param_name
+check = CheckButtons(rax, labels)
 
+param_to_fix = ig3.fix_params() # this stores the information of what variables to fix in the global fit
+
+
+
+
+def fix_param(label):
+    index = labels.index(label)
+    param_to_fix.update_param(label, not param_to_fix.get(label))
+    #print(var_to_fix.get(label))
+
+check.on_clicked(fix_param)
+
+
+
+
+#%%
+fix_index =  param_to_fix.fix_index()
+print(fix_index)
 #%% PUTTING THE FIT AND THE INIT GUESS TOGETHER TO COMPARE
-popt, pcov = pif.global_fit([dfs[a]] , init_guess.values())
-df = dfs[a]
-v1 = v
 
+fix_index =  param_to_fix.fix_index()
+popt, pcov = pif.global_fit([df] , init_guess.values() , fix_index)
+# df = dfs[a]
+#%%
 z , j = pif.pero_model(wlist,*popt,v)
 z_ig, j_ig = pif.pero_model(wlist,*init_guess.values(),v)
 

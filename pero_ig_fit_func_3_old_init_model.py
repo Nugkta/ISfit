@@ -185,7 +185,7 @@ def pero_sep(wvb, C_a, C_b, R_i, C_g, J_s, n):
 
 
 #the function for global fitting, need to input the list of df and the initial guess obtained above. 
-def global_fit(dfs, init_guess):
+def global_fit(dfs, init_guess, fix_index):
     zlist_big = np.array([])      #because we are fitting the w,v to z, need to stack up all the w v and z list from different Vb each to be one big list. 
     wlist_big = np.array([])
     vlist_big = np.array([])
@@ -197,8 +197,57 @@ def global_fit(dfs, init_guess):
     zrlist_big = zlist_big.real 
     zilist_big = zlist_big.imag 
     Zlist_big = np.hstack([zrlist_big, zilist_big])
-    #popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big,bounds =((-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,0.8),(np.inf,np.inf,np.inf,np.inf,np.inf,2)) ,p0 = init_guess,maxfev = 100000)   #fitting the function to the variables (wv(independent) and z(dependent)) for parameters
-    popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big ,p0 = init_guess,maxfev = 100000)
+    
+    
+    #BOUND METHOD
+    # #popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big,bounds =((-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,0.8),(np.inf,np.inf,np.inf,np.inf,np.inf,2)) ,p0 = init_guess,maxfev = 100000)   #fitting the function to the variables (wv(independent) and z(dependent)) for parameters
+    # low_bound = [-np.inf,-np.inf,-np.inf,-np.inf,-np.inf,-np.inf]
+    # up_bound = [np.inf,np.inf,np.inf,np.inf,np.inf,np.inf]
+    # for i in fix_index:
+    #     #low_bound[i] = init_guess[i]*0.1
+    #     low_bound[i] = -np.inf
+    #     up_bound[i] = np.inf
+    # print(low_bound,up_bound)
+    
+    
+    #LAMDA FUNCTION METHOD
+    # [C_A, C_B, R_i, C_g, J_s, n] = init_guess
+    # param_list_o = [C_A, C_B, R_i, C_g, J_s, n]
+    # param_list = [C_A, C_B, R_i, C_g, J_s, n]
+    # param_dict_o = dict(zip(param_list, init_guess))    #the original dicitionary of parameters
+    # #param_dict = {1:C_A, 2:C_B, 3:R_i,4:C_g, 5:J_s,6: n}
+    # fix_list = []
+    # for i in fix_index:
+    #     fix_list.append(param_list.pop(i))
+    #     init_guess.pop(i)
+    #     # del param_dict [param_list_o[i]]
+    
+    
+    
+    # print(param_list)
+    # print(param_list_o)
+    
+    #clist = {1:C_A,2:C_B,3:C_g}
+    popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big ,p0 = init_guess,maxfev = 100000,method = 'lm',sigma = 1/Zlist_big, absolute_sigma = True)
+    # popt, pcov = curve_fit(pero_sep , wvlist_big, Zlist_big ,bounds = (low_bound,up_bound),p0 = init_guess,maxfev = 100000,method ='lm')
+    #popt, pcov = curve_fit(lambda wvlist,*param_list: pero_sep(wvlist,*param_list_o), wvlist_big, Zlist_big ,p0 = init_guess,maxfev = 100000)
+    # func = lambda 
+    # popt, pcov = curve_fit(lambda wvlist,clist[1],C_B,C_g: pero_sep(wvlist,C_A, C_B, R_i, C_g, J_s, n), wvlist_big, Zlist_big ,p0 = [C_A,C_B,C_g],maxfev = 100000)
+    
+    
+    
+    
+   #  param_dict_f = dict(zip(param_list, popt))  #the diction of parameters of fitted values
+   #  for key in param_dict_f:
+   #      param_dict_o[key] = param_dict_f[key]
+   # # print(param_list,'\n',param_list_o,'\n',init_guess)
+   #  param_fit = []
+   #  for key in param_dict_o:
+   #      param_fit.append(param_dict_o[key])
+   #  #return param_fit, pcov
+    
+    
+    
     return popt, pcov
 
 
@@ -207,6 +256,13 @@ def global_fit(dfs, init_guess):
 
 
 #%%
+# def removekey(d, key):
+#     r = dict(d)
+#     del r[key]
+#     return r
+
+# param_dict = {3:'C_A', 4:"C_B", 5:'R_i', 8:'C_g', 99:'J_s', 77:'n'}
+# removekey(param_dict, key)
 #%% generating simulated sets of data
 # Vblist = np.linspace(0, 1, 3)      #defining the range of the bias volatage
 # w = np.logspace(-6 , 10 , 1000)     #defining the range of the frequency 
