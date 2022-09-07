@@ -598,6 +598,167 @@ def add1():
     window['y'] = 20
 
 add1()
+#%%
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.widgets import CheckButtons
+
+t = np.arange(0.0, 2.0, 0.01)
+s0 = np.sin(2*np.pi*t)
+s1 = np.sin(4*np.pi*t)
+s2 = np.sin(6*np.pi*t)
+
+fig, ax = plt.subplots()
+l0, = ax.plot(t, s0, visible=False, lw=2, color='k', label='2 Hz')
+l1, = ax.plot(t, s1, lw=2, color='r', label='4 Hz')
+l2, = ax.plot(t, s2, lw=2, color='g', label='6 Hz')
+plt.subplots_adjust(left=0.2)
+
+lines = [l0, l1, l2]
+
+# Make checkbuttons with all plotted lines with correct visibility
+rax = plt.axes([0.09, 0.4, 0.1, 0.15])
+labels = [str(line.get_label()) for line in lines]
+visibility = [line.get_visible() for line in lines]
+check = CheckButtons(rax, labels, visibility)
+
+
+def func(label):
+    print(label)
+    index = labels.index(label)
+    lines[index].set_visible(not lines[index].get_visible())
+    print(not lines[index].get_visible())
+    plt.draw()
+
+check.on_clicked(func)
+
+plt.show()
+
+
+
+
+#%%
+#!/usr/bin/env python
+#<examples/doc_basic.py>
+from lmfit import minimize, Minimizer, Parameters, Parameter, report_fit
+import numpy as np
+
+# create data to be fitted
+x = np.linspace(0, 15, 301)
+data = (5. * np.sin(2 * x - 0.1) * np.exp(-x*x*0.025) +
+        np.random.normal(size=len(x), scale=0.2) )
+
+# define objective function: returns the array to be minimized
+def fcn2min(params, x, data):
+    """ model decaying sine wave, subtract data"""
+    amp = params['amp']
+    shift = params['shift']
+    omega = params['omega']
+    decay = params['decay']
+    model = amp * np.sin(x * omega + shift) * np.exp(-x*x*decay)
+    return model - data
+
+# create a set of Parameters
+params = Parameters()
+params.add('amp',   value= 10,  min=0)
+params.add('decay', value= 0.1)
+params.add('shift', value= 0.0, min=-np.pi/2., max=np.pi/2)
+params.add('omega', value= 3.0)
+
+
+# do fit, here with leastsq model
+minner = Minimizer(fcn2min, params, fcn_args=(x, data))
+kws  = {'options': {'maxiter':10}}
+result = minner.minimize()
+
+
+# calculate final result
+final = data + result.residual
+
+# write error report
+report_fit(result)
+
+# try to plot results
+try:
+    import pylab
+    pylab.plot(x, data, 'k+')
+    pylab.plot(x, final, 'r')
+    pylab.show()
+except:
+    pass
+
+
+#%%
+
+
+k = 1
+b = 2
+
+
+def func(x, k, b):
+    y = k*x + b
+    return y
+
+param= input('input the parameter to fit')
+
+newfunc = lambda x,param :func(w,k,b)    
+
+#我想，如果用户input了k， newfunc 就变成lambda x,k :func(w,k,b), 这里面b就用的之前定义的b = 2，不再是个variable 了，只有k还是variable，然后可以拿去fit data
+#但问题是用户input的string 不能代表variable name，有没有啥办法实现
+
+#%%
+from numpy import exp, linspace, random
+
+def gaussian(x, amp, cen, wid):
+    return amp * exp(-(x-cen)**2 / wid)
+gmodel = Model(gaussian)
+x_eval = linspace(0, 10, 201)
+y_eval = gmodel.eval(x=x_eval, cen=6.5, amp=100, wid=2.0)
+
+plt.plot(x_eval,y_eval,'.')
+
+
+
+#%%
+    for i in fix_index:    
+        pars[param_dict[i]].max = init_guess[i] *1.01
+        pars[param_dict[i]].mmin = init_guess[i] *0.99
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

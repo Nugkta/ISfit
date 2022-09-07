@@ -38,7 +38,7 @@ class init_guess_class:
     '''
     def __init__(self): #initialising the attributes
         self.C_A = None
-        self.C_B = None
+        self.C_ion = None
         self.R_ion = None
         self.C_g = None
         self.J_s = None
@@ -46,7 +46,7 @@ class init_guess_class:
         
     def update_all(self, init): # update all the attrs in one go by inputting a list of values
         self.C_A = init[0]
-        self.C_B = init[1]
+        self.C_ion = init[1]
         self.R_ion = init[2]
         self.C_g = init[3]
         self.J_s = init[4]
@@ -57,7 +57,7 @@ class init_guess_class:
         
     def values(self): #function for returning all the values of the initial guess
         return [self.C_A, 
-                self.C_B ,
+                self.C_ion ,
                 self.R_ion ,
                 self.C_g ,
                 self.J_s ,
@@ -69,7 +69,7 @@ class init_guess_class:
 class fix_params():     #class that store the parameters to fix in the fit
     def __init__(self):
         self.C_A = False
-        self.C_B = False
+        self.C_ion = False
         self.R_ion = False
         self.C_g = False
         self.J_s = False
@@ -80,7 +80,7 @@ class fix_params():     #class that store the parameters to fix in the fit
         return getattr(self, param)
     def fix_index(self):     #find the index of variables to fix
         attr_list = [self.C_A, 
-                self.C_B ,
+                self.C_ion ,
                 self.R_ion ,
                 self.C_g ,
                 self.J_s ,
@@ -162,7 +162,7 @@ def init_guess(df ,crit_points):
     C_B = 1 / (1/C_ion - 1/C_A)
     V = np.real(df['bias voltage'][0])
     J_s = J_n / np.e**((V*(1 - C_ion/C_A)*q) / (nA * kb * T))
-    return C_A, C_B, R_ion, C_g, J_s, nA
+    return C_A, C_ion, R_ion, C_g, J_s, nA
 
 def init_guess_slider(df, points, R_ion):       
     '''
@@ -180,7 +180,7 @@ def init_guess_slider(df, points, R_ion):
     C_B = 1 / (1/C_ion - 1/C_A)
     V = np.real(df['bias voltage'][0])
     J_s = J_n / np.e**((V*(1 - C_ion/C_A)*q) / (nA * kb * T)) 
-    return C_A, C_B, R_ion, C_g, J_s, nA
+    return C_A, C_ion, R_ion, C_g, J_s, nA
 
 
 def get_init_guess(df): #put together crit points and init guess
@@ -335,7 +335,6 @@ def R_ion_Slider(init_guess, df, v,crit_points):
     axbox = plt.axes([0.1, 0.07, 0.04, 0.03])
     text_box = TextBox(axbox, 'Set R_ion manually: ', initial=initial_text)
     text_box.on_submit(lambda text: submit(text, crit_points))
-
     plt.show()
 
 

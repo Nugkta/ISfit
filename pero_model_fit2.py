@@ -21,11 +21,12 @@ kb = 1.38e-23
 def Zcap(c, w): #returns the impedance of a capacitor
     return 1 / (1j * w * c)
 
-def pero_model(w, C_A, C_B, R_i, C_g, J_s, nA, Vb): #w is the list of frequency, the independent variable
+def pero_model(w, C_A, C_ion, R_i, C_g, J_s, nA, Vb): #w is the list of frequency, the independent variable
     '''
     The is the model of the perovskite, by inputting C_A, C_B, R_i, C_g, J_s, nA, Vb as parameters, w(frequency) as the independent variable,
     the corresponding impedance Z(dependent variable) can be obtainded, together with the current in electronic branch J1.
     '''
+    C_B = 1 / (1/C_ion - 1/C_A)
     Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_i)
     Z_ion = (Zcap(C_A , w) + Zcap(C_B , w) + Z_d) #the impedance of the ionic branch
     v1 = Vb * (C_A / (C_A + C_B))
@@ -38,14 +39,14 @@ def pero_model(w, C_A, C_B, R_i, C_g, J_s, nA, Vb): #w is the list of frequency,
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
     return Z_tot, J1      #returning the total impedance and the current in electronic branch
 
-def pero_sep(w,C_A,C_B,R_ion,C_g,J_s,nA,vb): 
+def pero_sep(w,C_A,C_ion,R_ion,C_g,J_s,nA,vb): 
     '''
     This is the function used as the model for the curve fit.
     
     Because the pero_model will return a complex Z, while the curve fitting function does not support complex fitting,
     the function here will separate the real and imaginary part of the Z and put them in an array for the fitting function.
     '''
-    z = pero_model(w, C_A,C_B,R_ion,C_g,J_s,nA, vb)[0] # only keep the Z_tot, not J1
+    z = pero_model(w, C_A,C_ion,R_ion,C_g,J_s,nA, vb)[0] # only keep the Z_tot, not J1
     return np.hstack([z.real, z.imag])     # this will return a list of the form [z1real, z2real,...,z1imag, z2imag, ...]
 
 def global_fit(dfs, init_guess, fix_index):
@@ -54,7 +55,7 @@ def global_fit(dfs, init_guess, fix_index):
     For individual fit, just input a list of dataframes with only one dataframe as element.
     '''
     
-    params_list = ['C_A' , 'C_B', "R_ion", 'C_g', 'J_s' , 'nA'] #the list of parameters names
+    params_list = ['C_A' , 'C_ion', "R_ion", 'C_g', 'J_s' , 'nA'] #the list of parameters names
     zlist_big = np.array([])      #because we are fitting the w,v to z, need to stack up all the w v and z list from different Vb each to be one big list. 
     wlist_big = np.array([])
     vlist_big = np.array([])
@@ -67,8 +68,8 @@ def global_fit(dfs, init_guess, fix_index):
     zilist_big = zlist_big.imag 
     Zlist_big = np.hstack([zrlist_big, zilist_big])
     vb = vlist_big[0]  
-    mod = Model(lambda wvb,C_A,C_B,R_ion,C_g,J_s,nA: pero_sep(wvb,C_A,C_B,R_ion,C_g,J_s,nA,vb)) # using the pero_sep function to define a model for the fitting
-    pars = mod.make_params(C_A=init_guess[0],C_B=init_guess[1],R_ion=init_guess[2],C_g=init_guess[3],J_s=init_guess[4],nA=init_guess[5]) #define the parameters for the fitting
+    mod = Model(lambda wvb,C_A,C_ion,R_ion,C_g,J_s,nA: pero_sep(wvb,C_A,C_ion,R_ion,C_g,J_s,nA,vb)) # using the pero_sep function to define a model for the fitting
+    pars = mod.make_params(C_A=init_guess[0],C_ion=init_guess[1],R_ion=init_guess[2],C_g=init_guess[3],J_s=init_guess[4],nA=init_guess[5]) #define the parameters for the fitting
     for i in fix_index:    #make the user-selected fixed parameters to have a very narrow fitting range, virtually fixed.
         pars[params_list[i]].max = init_guess[i] *1.001
         pars[params_list[i]].min = init_guess[i] *0.999
