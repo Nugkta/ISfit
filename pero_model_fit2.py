@@ -10,8 +10,7 @@ In this file:
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-from lmfit import minimize, Minimizer, Parameters, Parameter, report_fit, Model
+from lmfit import Model
 
 #constants used in the model
 VT = 0.026 # = kT/q

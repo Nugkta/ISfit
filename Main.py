@@ -22,6 +22,14 @@ from matplotlib.widgets import TextBox,Slider, Button,CheckButtons
 from lmfit import minimize, Minimizer, Parameters, Parameter, report_fit
 
 
+
+
+
+
+#%%
+'''
+In this section I imported the
+'''
 #importing example excel data
 dfs = []
 for file in glob.glob('paperdata/**.xlsx'): 
@@ -357,7 +365,7 @@ textboxs[5].on_submit(lambda text: submit_2(text, crit_points,'nA',init_guess))
 
 for key in sliders:
     sliders[key].on_changed(lambda val: update(val))
-resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
+resetax = plt.axes([0.8, 0.9, 0.1, 0.04])
 button = Button(resetax, 'Reset', hovercolor='0.975')
 def reset(event):
     for key in sliders:
@@ -366,7 +374,7 @@ button.on_clicked(reset)
 plt.show()
 
 #define bottons to fix the initial guess while doing curve_fit
-rax = plt.axes([0.1, 0.5, 0.1, 0.3])
+rax = plt.axes([0.85, 0.03, 0.08, 0.2])
 lines = [line1, line_zr,line_Ceff,line_absz,line_t]
 labels = param_name
 check = CheckButtons(rax, labels)
@@ -377,6 +385,12 @@ def fix_param(label):
     param_to_fix.update_param(label, not param_to_fix.get(label))
 
 check.on_clicked(fix_param)
+
+
+# Add a textbox as the title of the checkbottons
+text_ax = plt.axes([0.95, 0.24, 0.0, 0.0])
+label = 'Parameters to fix during fitting'
+textbox = TextBox(text_ax,label)
 
 #%% Here the parameters are fitted to the data and the result is produced
 '''
