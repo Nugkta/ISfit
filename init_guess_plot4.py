@@ -10,7 +10,7 @@ as well as the interactive plots and demonstration.
 
 """
 
-import pero_model_fit2 as pmf
+import pero_model_fit4 as pmf
 import numpy as np 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -225,14 +225,15 @@ def get_init_guess(df): #put together crit points and init guess
 
 
 
-wlist = np.logspace(-6, 6 ,10000)
+wlist = np.logspace(-3, 6 ,10000)
 
 
 
 
-def R_ion_Slider(init_guess, df, v,crit_points):
-    simu_Z, simu_J1 = pmf.pero_model(wlist,*init_guess.values(),v)
-    print(v)
+def R_ion_Slider(init_guess, dfs,crit_points):
+    df = dfs[-1]
+    v = df['bias voltage'][0]
+    simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
     fig , ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(2 , 2,figsize = (20,10)) #opening the canvas for the plot of Nyquist
 
 
@@ -318,7 +319,7 @@ def R_ion_Slider(init_guess, df, v,crit_points):
         R_ion = np.exp(R_slider.val)
         iglist = init_guess_slider(df,points,R_ion)
         init_guess.update_all(iglist)
-        simu_Z, simu_J1 = pmf.pero_model(wlist,*init_guess.values(),v)
+        simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
         #first plot
         line2.set_ydata(-np.imag(simu_Z))
         line2.set_xdata(np.real(simu_Z))
@@ -359,7 +360,7 @@ def R_ion_Slider(init_guess, df, v,crit_points):
         R_ion = float(text)
         iglist = init_guess_slider(df,points,R_ion)
         init_guess.update_all(iglist)
-        simu_Z, simu_J1 = pmf.pero_model(wlist,*init_guess.values(),v)
+        simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
         #first plot
         line2.set_ydata(-np.imag(simu_Z))
         line2.set_xdata(np.real(simu_Z))
@@ -385,7 +386,7 @@ def R_ion_Slider(init_guess, df, v,crit_points):
     # the button to proceed to the next step    
     ax_next = plt.axes([0.8, 0.925, 0.1, 0.04])    #axis of the next step pattern
     button_next = Button(ax_next , 'Next step', hovercolor='0.975')
-    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, df, v,crit_points))
+    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points))
     
     
     resetax._button = button_R
@@ -396,9 +397,11 @@ def R_ion_Slider(init_guess, df, v,crit_points):
 
 #%%
 
-def all_param_sliders(event,init_guess, df, v,crit_points):
+def all_param_sliders(event,init_guess, dfs, crit_points):
     plt.close()
-    simu_Z, simu_J1 = pmf.pero_model(wlist,*init_guess.values(),v)
+    df = dfs[-1]
+    v = df['bias voltage'][0]
+    simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
     fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(18, 12),ncols = 2 , nrows = 2)
 
 
@@ -500,7 +503,7 @@ def all_param_sliders(event,init_guess, df, v,crit_points):
     def update(val,  ):            #function called when the value of slider is updated
         vals = [i.val for i in sl_val_list]
         init_guess.update_all(vals)
-        simu_Z , j = pmf.pero_model(wlist,*vals,v)
+        simu_Z , j = pmf.pero_model_ind(wlist,*vals,v)
         line2.set_ydata(-np.imag(simu_Z))
         line2.set_xdata(np.real(simu_Z))
         #second subplot
@@ -516,7 +519,7 @@ def all_param_sliders(event,init_guess, df, v,crit_points):
     def submit_2(text,points,param,init_guess):   #param shows which parameter is updated
         new_value = float(text)                 #convert the string input in textbox to float
         init_guess.update_param(param,new_value)   #only update the value of which the textbox is updated
-        simu_Z , j = pmf.pero_model(wlist,*init_guess.values(),v)
+        simu_Z , j = pmf.pero_model_ind(wlist,*init_guess.values(),v)
         #first plot
         line2.set_ydata(-np.imag(simu_Z))
         line2.set_xdata(np.real(simu_Z))
@@ -581,7 +584,7 @@ def all_param_sliders(event,init_guess, df, v,crit_points):
     # the button to proceed to the next step    
     ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
     button_next = Button(ax_next , 'Start Fitting', hovercolor='0.975')
-    button_next.on_clicked(lambda event:plot_comp_plots(event, param_to_fix,df,init_guess,v))
+    button_next.on_clicked(lambda event:fit_plot_comp_plots(event,param_to_fix,dfs,init_guess))
     
     ax_next._button_next = button_next
     resetax._button = button
@@ -595,34 +598,121 @@ def all_param_sliders(event,init_guess, df, v,crit_points):
 
 
 #%%
-def plot_comp_plots(event, param_to_fix,df,init_guess,v):
+# def plot_comp_plots(event, param_to_fix,dfs,init_guess,v):
+#     plt.close()
+#     fix_index =  param_to_fix.fix_index()
+#     #the fit it done below
+#     result = pmf.global_fit(dfs , init_guess.values() , fix_index)
+#     report_fit(result)
+#     result_dict = result.params.valuesdict()
+#     #putting the resultant parameters into the popt list
+#     popt = []
+#     for key in result_dict:
+#         popt.append( result_dict[key])
+#     z , j = pmf.pero_model(wlist,*popt,v)
+#     z_ig, j_ig = pmf.pero_model(wlist,*init_guess.values(),v)
+
+#     fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(18, 12),ncols = 2 , nrows = 2)
+#     fig.suptitle('Comparison between the initial guess and the fitted parameters', fontsize = 16)
+
+
+def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess):
+    '''
+    doing the fitting and plot the comparison plot with the original data and the init_guess 
+    '''
     plt.close()
+    fix_index = []
     fix_index =  param_to_fix.fix_index()
-    result = pmf.global_fit([df] , init_guess.values() , fix_index)
+    #the fit it done below
+    result = pmf.global_fit(dfs , init_guess.values() , fix_index)
     report_fit(result)
     result_dict = result.params.valuesdict()
+    #putting the resultant parameters into the popt list
     popt = []
     for key in result_dict:
         popt.append( result_dict[key])
-    z , j = pmf.pero_model(wlist,*popt,v)
-    z_ig, j_ig = pmf.pero_model(wlist,*init_guess.values(),v)
+    plot_comp(popt , init_guess, dfs)
+    
+    
+    
+    
+    
+    # for key in result_dict:
+    #     popt.append( result_dict[key])
+        
+    # zlist_big = np.array([])   
+    # wlist_big = np.array([])
+    # vlist_big = np.array([])
+    # for df in dfs:
+    #     zlist_big = np.concatenate((zlist_big , df['impedance'].values))
+    #     wlist_big = np.concatenate((wlist_big , df['frequency'].values.real))
+    #     vlist_big = np.concatenate((vlist_big , df['bias voltage'].values.real))
+    # wvlist_big = np.stack((wlist_big,vlist_big),axis = 1)    
 
+    
+    # z , j = pmf.pero_model(wvlist_big,*popt)
+    # z_ig, j_ig = pmf.pero_model(wvlist_big,*init_guess.values(),1,1)
+    
+    
+    # plt.figure()
+    
+    # plt.plot(np.real(zlist_big), -np.imag(zlist_big),'rx',ms = 4,label = 'original data')
+    
+    # wlist = np.logspace(-6,6,1000)
+    # v_set = set(vlist_big)
+    # for i in v_set:
+    #     #first plot the fitted parameters
+    #     vlist = np.ones(len(wlist)) * i
+    #     wvlist = np.stack((wlist,vlist),axis = 1)  
+    #     z_fit, j_fit = pmf.pero_model(wvlist,*popt)
+    #     plt.plot(np.real(z_fit),-np.imag(z_fit),'-' , color = 'deepskyblue',label ='fitted parameters')
+    #     #then plot the initial guess parameters
+    #     z_ig, j_ig = pmf.pero_model(wvlist,*init_guess.values(),1,1)
+    #     plt.plot(np.real(z_ig),-np.imag(z_ig),'--',color = 'darkorange',label = 'initial guess')
+        
+        
+        
+    
+    # plt.legend(['original data','fitted parameters' ,'initial guess'])
+    # plt.title('The Nyquist plot for comparison')
+    # plt.xlabel('Z\'')
+    # plt.ylabel('Z\'\'')
+    
+    # plt.figure()
+    # plt.plot(wlist_big,np.real(zlist_big),'bx',ms = 4, label = 'actual data Z\' ')  
+    # plt.xscale('log')
+
+
+def plot_comp(popt , init_guess, dfs):
+    zlist_big = np.array([])   
+    wlist_big = np.array([])
+    vlist_big = np.array([])
+    for df in dfs:
+        zlist_big = np.concatenate((zlist_big , df['impedance'].values))
+        wlist_big = np.concatenate((wlist_big , df['frequency'].values.real))
+        vlist_big = np.concatenate((vlist_big , df['bias voltage'].values.real))
+    wvlist_big = np.stack((wlist_big,vlist_big),axis = 1)    
+    z_ex = zlist_big #experimental z
+    
+    
+    
+    
     fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(18, 12),ncols = 2 , nrows = 2)
     fig.suptitle('Comparison between the initial guess and the fitted parameters', fontsize = 16)
 
     #The Nyquist plot
     ax_nyq = plt.subplot(212)
-    line1, = ax_nyq.plot(np.real(df['impedance'].values), -np.imag(df['impedance']),'x', ms=4 , label = 'actual data')   #actual data line
-    line2, = ax_nyq.plot(np.real(z),-np.imag(z),'m-', label = 'fitted') #fitted parameter line
-    line3, =ax_nyq.plot(np.real(z_ig),-np.imag(z_ig),'b--', label = 'initial guess') #initial guess line
-    ax_nyq.legend()
+    line1, = ax_nyq.plot(np.real(z_ex), -np.imag(z_ex),'x', ms=4 , label = 'actual data')   #actual data line
+    # line2, = ax_nyq.plot(np.real(z),-np.imag(z),'m-', label = 'fitted') #fitted parameter line
+    # line3, =ax_nyq.plot(np.real(z_ig),-np.imag(z_ig),'b--', label = 'initial guess') #initial guess line
+    #ax_nyq.legend()
     ax_nyq.set_xlabel('Z\'')
     ax_nyq.set_ylabel('Z\'\'')
 
     #Z_real plot
-    line_zr, = ax1.plot(df['frequency'],np.real(df['impedance'].values),'bx',ms = 4, label = 'actual data Z\' ')
-    line_zr_ig, = ax1.plot(wlist,np.real(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess Z\'')
-    line_zr_fit, = ax1.plot(wlist,np.real(z),linestyle = 'solid',color = 'm', label = ' fitted Z\'')
+    line_zr, = ax1.plot(wlist_big,np.real(z_ex),'bx',ms = 4, label = 'actual data Z\' ')
+    # line_zr_ig, = ax1.plot(wlist,np.real(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess Z\'')
+    # line_zr_fit, = ax1.plot(wlist,np.real(z),linestyle = 'solid',color = 'm', label = ' fitted Z\'')
     ax1.set_xscale('log')
     ax1.set_ylabel('Z\'')
     ax1.set_xlabel(r'frequency $\omega$')
@@ -634,14 +724,12 @@ def plot_comp_plots(event, param_to_fix,df,init_guess,v):
     #effective ccapacitance
 
     ax_eff = ax1.twinx()
-    C_eff = np.imag(1 / df['impedance']) / df['frequency']
-    C_eff_ig = np.imag(1 / z_ig) / wlist
-    C_eff_fit = np.imag(1 / z) / wlist
+    C_eff = np.imag(1 / z_ex) / wlist_big
 
 
-    line_Ceff, = ax_eff.plot(df['frequency'],C_eff,'x',ms = 4,color = 'peru', label = 'experiment effective capacitance')
-    line_Ceff_ig, = ax_eff.plot(wlist , C_eff_ig,linestyle = 'dotted',ms = 4,color = 'orange', label = 'initial guess effective capacitance')
-    line_Ceff_fit, = ax_eff.plot(wlist , C_eff_fit,linestyle = 'solid',ms = 4,color = 'y', label = 'fitted effective capacitance')
+    line_Ceff, = ax_eff.plot(wlist_big,C_eff,'x',ms = 4,color = 'peru', label = 'experiment effective capacitance')
+    # line_Ceff_ig, = ax_eff.plot(wlist , C_eff_ig,linestyle = 'dotted',ms = 4,color = 'orange', label = 'initial guess effective capacitance')
+    # line_Ceff_fit, = ax_eff.plot(wlist , C_eff_fit,linestyle = 'solid',ms = 4,color = 'y', label = 'fitted effective capacitance')
     ax_eff.set_yscale('log')
     ax_eff.set_xscale('log')
     ax_eff.set_ylabel(r'Im($Z^{-1}$)$\omega^{-1}$')
@@ -651,9 +739,9 @@ def plot_comp_plots(event, param_to_fix,df,init_guess,v):
 
 
     #abs Z part plot
-    line_absz, = ax2.plot(df['frequency'],np.abs(df['impedance'].values),'bx',ms = 4, label = 'experiment |Z| ')
-    line_absz_ig, = ax2.plot(wlist,np.abs(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess |Z|')
-    line_absz_ig, = ax2.plot(wlist,np.abs(z),linestyle = 'solid',color = 'm', label = ' fitted |Z|')
+    line_absz, = ax2.plot(wlist_big,np.abs(z_ex),'bx',ms = 4, label = 'experiment |Z| ')
+    # line_absz_ig, = ax2.plot(wlist,np.abs(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess |Z|')
+    # line_absz_ig, = ax2.plot(wlist,np.abs(z),linestyle = 'solid',color = 'm', label = ' fitted |Z|')
     ax2.set_xscale('log')
     ax2.set_ylabel('|Z|')
     ax2.set_xlabel(r'frequency $\omega$')
@@ -665,31 +753,67 @@ def plot_comp_plots(event, param_to_fix,df,init_guess,v):
     #theta plot
 
     ax_t = ax2.twinx()
-    line_t, = ax_t.plot(df['frequency'],np.angle(df['impedance'].values),'x',ms = 4,color = 'peru', label = r'experiment $\theta$')
-    line_t_ig, = ax_t.plot(wlist , np.angle(z_ig),linestyle = 'dotted',ms = 4,color = 'orange', label = r'initial guess $\theta$')
-    line_t_ig, = ax_t.plot(wlist , np.angle(z),linestyle = 'solid',ms = 4,color = 'y', label = r'fitted $\theta$')
+    line_t, = ax_t.plot(wlist_big,np.angle(z_ex),'x',ms = 4,color = 'peru', label = r'experiment $\theta$')
+    # line_t_ig, = ax_t.plot(wlist , np.angle(z_ig),linestyle = 'dotted',ms = 4,color = 'orange', label = r'initial guess $\theta$')
+    # line_t_ig, = ax_t.plot(wlist , np.angle(z),linestyle = 'solid',ms = 4,color = 'y', label = r'fitted $\theta$')
     ax_t.set_xscale('log')
     ax_t.set_ylabel(r'$\theta$')
     ax_t.legend(loc = 1, fontsize = 'small')
     ax_t.spines['right'].set_color('orange')
     ax_t.tick_params(axis='y', colors='orange')
-    fig.canvas.draw_idle()
+    
+    
+    v_set = set(vlist_big)
+    for i in v_set:
+        #first plot the fitted parameters
+        vlist = np.ones(len(wlist)) * i
+        wvlist = np.stack((wlist,vlist),axis = 1)  
+        z_fit, j_fit = pmf.pero_model(wvlist,*popt)
+        z_ig, j_ig = pmf.pero_model(wvlist,*init_guess.values(),1,1)
+        
+        line2, = ax_nyq.plot(np.real(z_fit),-np.imag(z_fit),'m-', label = 'fitted') #fitted parameter line
+        line3, =ax_nyq.plot(np.real(z_ig),-np.imag(z_ig),'b--', label = 'initial guess') #initial guess line
+        
+        line_zr_ig, = ax1.plot(wlist,np.real(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess Z\'')
+        line_zr_fit, = ax1.plot(wlist,np.real(z_fit),linestyle = 'solid',color = 'm', label = ' fitted Z\'')
+
+        C_eff_ig = np.imag(1 / z_ig) / wlist
+        C_eff_fit = np.imag(1 / z_fit) / wlist
+        
+        line_Ceff_ig, = ax_eff.plot(wlist , C_eff_ig,linestyle = 'dotted',ms = 4,color = 'orange', label = 'initial guess effective capacitance')
+        line_Ceff_fit, = ax_eff.plot(wlist , C_eff_fit,linestyle = 'solid',ms = 4,color = 'y', label = 'fitted effective capacitance')
+        
+        line_absz_ig, = ax2.plot(wlist,np.abs(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess |Z|')
+        line_absz_ig, = ax2.plot(wlist,np.abs(z_fit),linestyle = 'solid',color = 'm', label = ' fitted |Z|')
+        
+        line_t_ig, = ax_t.plot(wlist , np.angle(z_ig),linestyle = 'dotted',ms = 4,color = 'orange', label = r'initial guess $\theta$')
+        line_t_ig, = ax_t.plot(wlist , np.angle(z_fit),linestyle = 'solid',ms = 4,color = 'y', label = r'fitted $\theta$')
+
+    ax_nyq.legend(['experiemental','initial guess','fitted'])
+    ax1.legend(['experiemental','initial guess','fitted'],loc = 3, fontsize = 'small')
+    ax_eff.legend(['experiemental','initial guess','fitted'],loc = 1, fontsize = 'small')
+    ax2.legend(['experiemental','initial guess','fitted'],loc = 3, fontsize = 'small')
+    ax_t.legend(['experiemental','initial guess','fitted'],loc = 1, fontsize = 'small')
 
 
 
 
-
-
-def __main__(df,v):
-    crit_points = find_point(df)
+def __main__(dfs):
+    df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
+    crit_points = find_point(dfs[-1]) 
     ig = init_guess_find(df,crit_points) 
     init_guess = init_guess_class()
     init_guess.update_all(ig)
-    R_ion_Slider(init_guess, df, v,crit_points)
+    R_ion_Slider(init_guess, dfs,crit_points)
 
 
-
-
+# def __main__(dfs):
+#     df = dfs[-1] #Use only the last one to find initial guess, because its shape is the stablest
+#     crit_points = find_point(dfs[-1]) 
+#     ig = init_guess_find(df,crit_points)
+#     init_guess = init_guess_class()
+#     init_guess.update_all(ig)
+#     fit_plot_comp_plots(dfs,init_guess) #doing the fit and plot the comparison plot
 
 
 
