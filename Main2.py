@@ -50,7 +50,7 @@ df = dfs[a]
 v = v[a]
 #Now the df is the original data, v is the bias voltage. These are the two things to be provided by the users.
 
-
+#%%
 #getting the initial guess by igp functions
 crit_points = igp.find_point(df)
 ig = igp.init_guess(df,crit_points) 

@@ -24,7 +24,7 @@ def Zcap(c, w): #returns the impedance of a capacitor
 VT = 0.026 # = kT/q
 C_a = 2e-7
 C_b = 2e-7
-R_i = 5e8
+R_i = 5e4
 Vb = .2
 C_g = 2.8e-8  
 J_s = 7.1e-11
@@ -264,36 +264,36 @@ def global_fit(dfs, init_guess, fix_index):
 # param_dict = {3:'C_A', 4:"C_B", 5:'R_i', 8:'C_g', 99:'J_s', 77:'n'}
 # removekey(param_dict, key)
 #%% generating simulated sets of data
-# Vblist = np.linspace(0, 1, 3)      #defining the range of the bias volatage
-# w = np.logspace(-6 , 10 , 1000)     #defining the range of the frequency 
-# Vb_z_list = np.empty([2 , 1000])    #initialising Vbzlist
-# Vb_wzjv_list = [] #initialising the list of dataframes, each dataframe corresponds to a specific bias voltage
-# for V in Vblist:
-#     zlist, J1 = pero_model(w, C_a, C_b, R_i, C_g, J_s, nA, V)
-#     wzlist = np.stack((w , zlist) , axis = -1)
-#     wzlist = wzlist[wzlist[:, 1].real.argsort()]     # sorting the wzlist by the real part of the impedance(preparing for the find extrema function)
-#     vlist = np.ones(len(wzlist)) * V
-#     jlist = np.ones(len(wzlist)) * J1
-#     wz_v_jlist = np.column_stack((wzlist , vlist,jlist))
-#     #v_wz_jlist = np.column_stack((v_))
-#     df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
-#     Vb_wzjv_list.append(df)
+Vblist = np.linspace(0, 1, 3)      #defining the range of the bias volatage
+w = np.logspace(-6 , 10 , 1000)     #defining the range of the frequency 
+Vb_z_list = np.empty([2 , 1000])    #initialising Vbzlist
+Vb_wzjv_list = [] #initialising the list of dataframes, each dataframe corresponds to a specific bias voltage
+for V in Vblist:
+    zlist, J1 = pero_model(w, C_a, C_b, R_i, C_g, J_s, nA, V)
+    wzlist = np.stack((w , zlist) , axis = -1)
+    wzlist = wzlist[wzlist[:, 1].real.argsort()]     # sorting the wzlist by the real part of the impedance(preparing for the find extrema function)
+    vlist = np.ones(len(wzlist)) * V
+    jlist = np.ones(len(wzlist)) * J1
+    wz_v_jlist = np.column_stack((wzlist , vlist,jlist))
+    #v_wz_jlist = np.column_stack((v_))
+    df = pd.DataFrame(wz_v_jlist , columns=['frequency' , 'impedance' , 'bias voltage','recomb current'])
+    Vb_wzjv_list.append(df)
     
 
 
-# init_guess = get_init_guess(Vb_wzjv_list)
-# print('the initial guesses are', init_guess)
-# popt, pcov = global_fit(Vb_wzjv_list , init_guess)
-# print('the fitted parameters are',popt)
-# print('the original parameters are',C_a, C_b, R_i, C_g, J_s, nA )
+init_guess = get_init_guess(Vb_wzjv_list)
+print('the initial guesses are', init_guess)
+popt, pcov = global_fit(Vb_wzjv_list , init_guess)
+print('the fitted parameters are',popt)
+print('the original parameters are',C_a, C_b, R_i, C_g, J_s, nA )
 
 
 
 
 
-# #%%
-# df = Vb_wzjv_list[0]
-# wzlist = df[['frequency','impedance']].to_numpy()
+#%%
+df = Vb_wzjv_list[0]
+wzlist = df[['frequency','impedance']].to_numpy()
 
 
 

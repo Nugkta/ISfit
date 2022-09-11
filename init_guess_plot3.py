@@ -17,6 +17,9 @@ import pandas as pd
 from matplotlib.widgets import TextBox,Slider, Button,CheckButtons
 import functools
 from lmfit import report_fit
+from os import listdir
+from PIL import Image as PImage
+import matplotlib.image as mpimg
 #%%
 
 #constants used in the model
@@ -109,14 +112,35 @@ def find_extremum(df):
     zilist = np.imag(df['impedance'].values)
     zrilist = np.stack((zrlist , -zilist), axis = 1)
     #now letting the user to determine the rough location of the local maxima(2) and local minimum(1)
-    plt.plot(zrlist,-zilist,'.')
-    plt.title('please select the maxima')
+    # path = "sample_plot.png"
+    # imgs = PImage.open(path)
+    # imgs.show()
+    
+    # a = plt.figure()
+    img = mpimg.imread('max_sample.png')
+    # imgplot = plt.imshow(img)
+    # plt.figure('The position of the minimum and the maxima')
+    # plt.show()
+    
+    # plt.figure()
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    ax1.plot(zrlist,-zilist,'.')
+    ax1.set_title('Please click the maxima in this plot')
+    ax2.imshow(img)
+    ax2.set_title('Choose the two maxima like this')
     vertices = plt.ginput(2)
     plt.close()
-    plt.plot(zrlist,-zilist,'.')
-    plt.title('please select the minimum')
+    
+    
+    img2 = mpimg.imread('min_sample.png')
+    fig2, (ax3,ax4) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    ax3.plot(zrlist,-zilist,'.')
+    ax3.set_title('Please click the minimum in this plot')
+    ax4.imshow(img2)
+    ax4.set_title('Choose the minimum like this')
     mini = plt.ginput(1)
     plt.close()
+    # a.close()
     # use the approximate position the user selected to find the corresponding index in the dataframe
     nhlist = []
     nllist = []

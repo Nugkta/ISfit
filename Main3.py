@@ -48,7 +48,7 @@ v = v[a]
 # init_guess = igp.init_guess_class()
 # init_guess.update_all(ig)
 
-
+#%%
 igp.__main__(df, v)
 
 
