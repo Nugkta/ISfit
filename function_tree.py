@@ -45,7 +45,9 @@ def individual_0(df):
 
 
 def global_0(dfs):
-    
+    return 
+
+
     
     
 #%% test
@@ -76,10 +78,16 @@ individual_no0(df)
 global_no0(dfs)
 
 
+#%%
+z = df['impedance'].values
+plt.plot(np.real(z),-np.imag(z),'.') 
 
+#%%
+df= dfs[4]
 
-
-
+zlist = df['impedance'].to_numpy()
+R_srs = (min(np.real(zlist)))
+print(R_srs)
 
 
 

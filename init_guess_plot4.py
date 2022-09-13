@@ -49,6 +49,8 @@ class init_guess_class:
         self.C_g = None
         self.J_s = None
         self.nA = None
+        self.R_srs = None
+        self.R_shnt = 10000  #setting a large initial guess for R-shnt for the case of global fit without 0V
         
     def update_all(self, init): # update all the attrs in one go by inputting a list of values
         self.C_A = init[0]
@@ -57,7 +59,8 @@ class init_guess_class:
         self.C_g = init[3]
         self.J_s = init[4]
         self.nA = init[5]
-        
+        self.R_srs = init[6]
+        self.R_shnt = init[7]
     def update_R_ion(self, R_ion): #update R_ion only
         self.R_ion = R_ion
         
@@ -67,7 +70,9 @@ class init_guess_class:
                 self.R_ion ,
                 self.C_g ,
                 self.J_s ,
-                self.nA ]
+                self.nA,
+                self.R_srs,
+                self.R_shnt]
     
     def update_param(self,param,value): #updating a specific parameter
         setattr(self,param,value)
@@ -90,9 +95,11 @@ class fix_params():     #class that store the parameters to fix in the fit
                 self.R_ion ,
                 self.C_g ,
                 self.J_s ,
-                self.nA ]
+                self.nA,
+                self.R_srs,
+                self.R_shnt]
         index = []
-        for i in range(0,6):
+        for i in range(0,8):
             if attr_list[i] == True:
                 index.append(i)
         return index #this function will return the index of the parameters that the user selected to fit.
@@ -170,26 +177,120 @@ def find_point(df):
     # print(C_eff)
     #C_n = C_eff[-1]
     C_G = C_eff[0]
-    return R_n8 , R_n0 , w_n , w_t , C_G ,w_r
+    zlist = df['impedance'].to_numpy()
+    R_srs = min(np.real(zlist))
+
+    
+    return R_n8 , R_n0 , w_n , w_t , C_G ,w_r, R_srs
 
 
-def init_guess_find(df ,crit_points):
+
+
+
+
+def find_R_ion(df):
+    '''
+    This is for finding R_ion using the 0V data
+    '''
+    #find R_ion
+    zrlist = np.real(df['impedance'].values)
+    zilist = np.imag(df['impedance'].values)
+    zrilist = np.stack((zrlist , -zilist), axis = 1)
+    img = mpimg.imread('min_sample.png')
+
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    ax1.plot(zrlist,-zilist,'.')
+    ax1.set_title('Please click the minimum in this plot')
+    ax2.imshow(img)
+    ax2.set_title('Choose the minimum like this')
+    mini = plt.ginput(1)
+    plt.close()
+    R_ion = mini[0][0]
+    return R_ion
+
+
+
+
+
+def init_guess_find(df ,crit_points, V0 = False):
     '''
     Then, by implementing the algorithm using the original data, user guessed R_ion and the obtained critical points, the initial guess
     can be obtained corresponds to the method written in the paper.
     '''
-    R_n8 , R_n0 , w_n , w_t , C_G ,w_r = crit_points
-    R_ion = float(input('Please input your guess of R_ion: '))
-    J_n = np.real(df['recomb current'][0]) 
-    k = R_n0 / R_n8
-    nA = J_n *R_n8 *q / ( kb *T)
-    C_ion = 1 / (w_n * k * R_ion)
-    C_g = C_G
-    C_A = C_ion / (1 - 1/k)
-    C_B = 1 / (1/C_ion - 1/C_A)
-    V = np.real(df['bias voltage'][0])
-    J_s = J_n / np.e**((V*(1 - C_ion/C_A)*q) / (nA * kb * T))
-    return C_A, C_ion, R_ion, C_g, J_s, nA
+    if V0 is False: 
+        R_n8 , R_n0 , w_n , w_t , C_G ,w_r, R_srs = crit_points
+        R_ion = float(input('Please input your guess of R_ion: '))
+        J_n = np.real(df['recomb current'][0]) 
+        k = R_n0 / R_n8
+        nA = J_n *R_n8 *q / ( kb *T)
+        C_ion = 1 / (w_n * k * R_ion)
+        C_g = C_G
+        C_A = C_ion / (1 - 1/k)
+        C_B = 1 / (1/C_ion - 1/C_A)
+        V = np.real(df['bias voltage'][0])
+        J_s = J_n / np.e**((V*(1 - C_ion/C_A)*q) / (nA * kb * T))
+        return C_A, C_ion, R_ion, C_g, J_s, nA, R_srs
+        
+def init_guess_find_0V(df):
+    '''
+    This function is for finding the critical point for initial guess finding for the 0V bias voltage scenerio
+    '''
+    #find R_srs
+    zlist = df['impedance'].to_numpy()
+    R_srs = abs(min(np.real(zlist)))
+    
+    #find R_ion
+    zrlist = np.real(df['impedance'].values)
+    zilist = np.imag(df['impedance'].values)
+    zrilist = np.stack((zrlist , -zilist), axis = 1)
+    img = mpimg.imread('min_sample.png')
+
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    ax1.plot(zrlist,-zilist,'.')
+    ax1.set_title('Please click the minimum in this plot')
+    ax2.imshow(img)
+    ax2.set_title('Choose the minimum like this')
+    mini = plt.ginput(1)
+    plt.close()
+    R_ion = mini[0][0]
+    
+    #Find C_g
+    img = mpimg.imread('max_sample.png')
+
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    ax1.plot(zrlist,-zilist,'.')
+    ax1.set_title('Please click the first maximum in this plot')
+    ax2.imshow(img)
+    ax2.set_title('Choose the first maximum like this')
+    maxi = plt.ginput(1)
+    plt.close()
+    max_num = closest_node(maxi , zrilist)
+    wzlist = df[['frequency','impedance']].to_numpy()
+    w_g = np.real(wzlist[max_num][0])
+    C_g = 1/(R_ion * w_g)
+    
+    
+    #Find J_nA and R_shnt by R_n
+    img = mpimg.imread('max_sample.png')
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    ax1.plot(zrlist,-zilist,'.')
+    ax1.set_title('Please click the approximate end of this plot')
+    ax2.imshow(img)
+    ax2.set_title('Choose the first maximum like this')
+    end = plt.ginput(1)
+    plt.close()
+    R_n = end[0][0]
+    J_nA = kb*T / (R_n * q)
+    R_shnt = R_n
+    
+    #Find C_ion by C_eff plot
+    C_eff = np.real(np.imag(1/df['impedance'].values)/df['frequency'])
+    C_ion = C_eff[-1]
+    
+    return C_ion, C_g, R_ion, J_nA, R_srs, R_shnt 
+
+
+
 
 def init_guess_slider(df, points, R_ion):       
     '''

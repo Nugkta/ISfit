@@ -34,7 +34,7 @@ wlist = np.logspace(-6,6,1000)
 a = 2 #change this to change the set of data to fit
 v = [0,.795,.846,.894]
 
-dfs=dfs[1:4]
+dfs=dfs[0:4]
 df = dfs[a]
 v = v[a]
 
@@ -51,7 +51,9 @@ igp.__main__(dfs)
 
 
 
-
+#%%
+df = dfs[0]
+init = igp.init_guess_find_0V(df)
 
 
 

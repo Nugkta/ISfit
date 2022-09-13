@@ -21,7 +21,7 @@ kb = 1.38e-23
 def Zcap(c, w): #returns the impedance of a capacitor
     return 1 / (1j * w * c)
 
-def pero_model(w_Vb, C_A_0, C_ion_0, R_i, C_g, J_s, nA, V_bi_A, V_bi_ion): #w is the list of frequency, the independent variable
+def pero_model(w_Vb, C_A_0, C_ion_0, R_i, C_g, J_s, nA, V_bi_A, V_bi_ion, R_srs, R_shnt): #w is the list of frequency, the independent variable
     '''
     The is the model of the perovskite, by inputting C_A, C_B, R_i, C_g, J_s, nA, Vb as parameters, w(frequency) as the independent variable,
     the corresponding impedance Z(dependent variable) can be obtainded, together with the current in electronic branch J1.
@@ -41,10 +41,13 @@ def pero_model(w_Vb, C_A_0, C_ion_0, R_i, C_g, J_s, nA, V_bi_A, V_bi_ion): #w is
     djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
-    return Z_tot, J1      #returning the total impedance and the current in electronic branch
+    Z_tot2 = Z_tot + R_srs
+    Z_tot3 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
+    
+    return Z_tot3, J1      #returning the total impedance and the current in electronic branch
 
 
-def pero_model_ind(w, C_A, C_ion, R_i, C_g, J_s, nA, Vb): # for individual set
+def pero_model_ind(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,Vb,): # for individual set
     '''
     The is the model of the perovskite, by inputting C_A, C_B, R_i, C_g, J_s, nA, Vb as parameters, w(frequency) as the independent variable,
     the corresponding impedance Z(dependent variable) can be obtainded, together with the current in electronic branch J1.
@@ -60,29 +63,44 @@ def pero_model_ind(w, C_A, C_ion, R_i, C_g, J_s, nA, Vb): # for individual set
     djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
-    return Z_tot, J1      #returning the total impedance and the current in electronic branch
+    Z_tot2 = Z_tot + R_srs
+    Z_tot3 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
+    return Z_tot3, J1      #returning the total impedance and the current in electronic branch
 
 
+def pero_model_0V(w, C_ion, C_g, R_ion, J_nA, R_srs, R_shnt):
+    '''
+    This is the model for only the 0V individual fit.
+    in this case the value of C_A is not distinguishable
+    
+    '''
+    Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_ion)
+    Z_ion = Zcap(C_ion) + Z_d
+    djdv = J_nA/VT
+    Z_elct = 1 / djdv #the impedance of the electronic branch
+    Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
+    Z_tot2 = Z_tot + R_srs
+    Z_tot3 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
+    return Z_tot3 
 
 
-
-
-
-def pero_sep(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi_A, V_bi_ion): 
+def pero_sep(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi_A, V_bi_ion, R_srs, R_shnt): 
     '''
     This is the function used as the model for the curve fit.
     
     Because the pero_model will return a complex Z, while the curve fitting function does not support complex fitting,
     the function here will separate the real and imaginary part of the Z and put them in an array for the fitting function.
     '''
-    z = pero_model(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi_A, V_bi_ion)[0] # only keep the Z_tot, not J1
+    z = pero_model(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi_A, V_bi_ion, R_srs, R_shnt)[0] # only keep the Z_tot, not J1
     return np.hstack([z.real, z.imag])     # this will return a list of the form [z1real, z2real,...,z1imag, z2imag, ...]
 
 
+def pero_sep_0V(w, C_ion, C_g, R_ion, J_nA, R_srs, R_shnt):
+    z = pero_model_0V(w, C_ion, C_g, R_ion, J_nA, R_srs, R_shnt)
+    return np.hstack([z.real, z.imag])  
 
 
-
-
+    
 
 
 def global_fit(dfs, init_guess, fix_index):
@@ -91,7 +109,7 @@ def global_fit(dfs, init_guess, fix_index):
     For individual fit, just input a list of dataframes with only one dataframe as element.
     '''
     
-    params_list = ['C_A_0', 'C_ion_0', 'R_i',' C_g',' J_s', 'nA',' V_bi_A', 'V_bi_ion'] #the list of parameters names
+    params_list = ['C_A_0', 'C_ion_0', 'R_i',' C_g',' J_s', 'nA',' V_bi_A', 'V_bi_ion','R_srs', 'R_shnt'] #the list of parameters names
     zlist_big = np.array([])      #because we are fitting the w,v to z, need to stack up all the w v and z list from different Vb each to be one big list. 
     wlist_big = np.array([])
     vlist_big = np.array([])
@@ -107,7 +125,7 @@ def global_fit(dfs, init_guess, fix_index):
     #mod = Model(lambda wvb,C_A,C_ion,R_ion,C_g,J_s,nA: pero_sep(wvb,C_A,C_ion,R_ion,C_g,J_s,nA,vb)) # using the pero_sep function to define a model for the fitting
     mod = Model(pero_sep)
     pars = mod.make_params(C_A_0=init_guess[0],C_ion_0=init_guess[1],R_ion=init_guess[2],C_g=init_guess[3],
-                           J_s=init_guess[4],nA=init_guess[5],V_bi_A = 1, V_bi_ion = 1) #define the parameters for the fitting
+                           J_s=init_guess[4],nA=init_guess[5],V_bi_A = 1, V_bi_ion = 1,R_srs = init_guess[6] , R_shnt = init_guess[7]) #define the parameters for the fitting
     print(mod.param_names, mod.independent_vars)
     #print(init_guess[2])
     for i in fix_index:    #make the user-selected fixed parameters to have a very narrow fitting range, virtually fixed.
@@ -115,6 +133,8 @@ def global_fit(dfs, init_guess, fix_index):
         pars[params_list[i]].min = init_guess[i] *0.999
     pars['V_bi_A'].min = 0.9
     pars[ 'V_bi_ion'].min = 0.9
+    pars['V_bi_A'].max = 1.5
+    pars[ 'V_bi_ion'].max = 1.5
     
     pars.pretty_print()
     result = mod.fit(Zlist_big,pars, w_Vb =wvlist_big , weights = 1 / Zlist_big)
