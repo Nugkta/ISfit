@@ -771,8 +771,9 @@ def plot_comp(popt , init_guess, dfs):
         z_fit, j_fit = pmf.pero_model(wvlist,*popt)
         z_ig, j_ig = pmf.pero_model(wvlist,*init_guess.values(),1,1)
         
-        line2, = ax_nyq.plot(np.real(z_fit),-np.imag(z_fit),'m-', label = 'fitted') #fitted parameter line
         line3, =ax_nyq.plot(np.real(z_ig),-np.imag(z_ig),'b--', label = 'initial guess') #initial guess line
+        line2, = ax_nyq.plot(np.real(z_fit),-np.imag(z_fit),'m-', label = 'fitted') #fitted parameter line
+        
         
         line_zr_ig, = ax1.plot(wlist,np.real(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess Z\'')
         line_zr_fit, = ax1.plot(wlist,np.real(z_fit),linestyle = 'solid',color = 'm', label = ' fitted Z\'')
