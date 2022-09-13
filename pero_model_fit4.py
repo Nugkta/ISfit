@@ -78,6 +78,13 @@ def pero_sep(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi_A, V_bi_ion):
     z = pero_model(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi_A, V_bi_ion)[0] # only keep the Z_tot, not J1
     return np.hstack([z.real, z.imag])     # this will return a list of the form [z1real, z2real,...,z1imag, z2imag, ...]
 
+
+
+
+
+
+
+
 def global_fit(dfs, init_guess, fix_index):
     '''
     This is the function fot the global fit, so the data need to be stack together to form big arrays.
@@ -110,7 +117,7 @@ def global_fit(dfs, init_guess, fix_index):
     pars[ 'V_bi_ion'].min = 0.9
     
     pars.pretty_print()
-    result = mod.fit(Zlist_big,pars, w_Vb =wvlist_big )
+    result = mod.fit(Zlist_big,pars, w_Vb =wvlist_big , weights = 1 / Zlist_big)
     return result #This result is a class defined from the package lmfit, containing informations such as the fitted value, uncertainties, initial guess ...
 
 
