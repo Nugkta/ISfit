@@ -52,7 +52,8 @@ class init_guess_class:
         self.R_srs = None
         self.R_shnt = 10000  #setting a large initial guess for R-shnt for the case of global fit without 0V
         
-    def update_all(self, init): # update all the attrs in one go by inputting a list of values
+    def update_all(self, init, mode = 0): # update all the attrs in one go by inputting a list of values 
+                                            #mode 1 is for global fit with 0V case.
         self.C_A = init[0]
         self.C_ion = init[1]
         self.R_ion = init[2]
@@ -60,20 +61,38 @@ class init_guess_class:
         self.J_s = init[4]
         self.nA = init[5]
         self.R_srs = init[6]
-        self.R_shnt = init[7]
+        if mode == 1:
+            self.R_shnt = init[7]
+        
+    def update_all_0V(self,init):
+        self.C_ion = init[0]
+        self.C_g = init[1]
+        self.R_ion = init[2]
+        self.J_nA = init[3]
+        self.R_srs = init[4]
+        self.R_shnt = init[5]
+        
     def update_R_ion(self, R_ion): #update R_ion only
         self.R_ion = R_ion
         
-    def values(self): #function for returning all the values of the initial guess
-        return [self.C_A, 
-                self.C_ion ,
-                self.R_ion ,
-                self.C_g ,
-                self.J_s ,
-                self.nA,
-                self.R_srs,
-                self.R_shnt]
-    
+    def values(self,mod = 0): #function for returning all the values of the initial guess
+        if mod == 0:    
+            return [self.C_A, 
+                        self.C_ion ,
+                        self.R_ion ,
+                        self.C_g ,
+                        self.J_s ,
+                        self.nA,
+                        self.R_srs,
+                        self.R_shnt]
+        if mod == 1:
+            return [self.C_ion ,
+                        self.C_g ,
+                        self.R_ion ,
+                        self.J_nA,
+                        self.R_srs,
+                        self.R_shnt]
+        
     def update_param(self,param,value): #updating a specific parameter
         setattr(self,param,value)
 
@@ -85,6 +104,8 @@ class fix_params():     #class that store the parameters to fix in the fit
         self.C_g = False
         self.J_s = False
         self.nA = False
+        self.R_srs = False
+        self.R_shnt = False
     def update_param(self,param,value):
         setattr(self,param,value)
     def get(self,param):
@@ -212,24 +233,28 @@ def find_R_ion(df):
 
 
 
-def init_guess_find(df ,crit_points, V0 = False):
+def init_guess_find(df ,crit_points, V0 = False,df_0V = None):
     '''
     Then, by implementing the algorithm using the original data, user guessed R_ion and the obtained critical points, the initial guess
     can be obtained corresponds to the method written in the paper.
     '''
+    
+    
     if V0 is False: 
-        R_n8 , R_n0 , w_n , w_t , C_G ,w_r, R_srs = crit_points
         R_ion = float(input('Please input your guess of R_ion: '))
-        J_n = np.real(df['recomb current'][0]) 
-        k = R_n0 / R_n8
-        nA = J_n *R_n8 *q / ( kb *T)
-        C_ion = 1 / (w_n * k * R_ion)
-        C_g = C_G
-        C_A = C_ion / (1 - 1/k)
-        C_B = 1 / (1/C_ion - 1/C_A)
-        V = np.real(df['bias voltage'][0])
-        J_s = J_n / np.e**((V*(1 - C_ion/C_A)*q) / (nA * kb * T))
-        return C_A, C_ion, R_ion, C_g, J_s, nA, R_srs
+    if V0 is True:
+        R_ion = find_R_ion(df_0V)
+    R_n8 , R_n0 , w_n , w_t , C_G ,w_r, R_srs = crit_points
+    J_n = np.real(df['recomb current'][0]) 
+    k = R_n0 / R_n8
+    nA = J_n *R_n8 *q / ( kb *T)
+    C_ion = 1 / (w_n * k * R_ion)
+    C_g = C_G
+    C_A = C_ion / (1 - 1/k)
+    C_B = 1 / (1/C_ion - 1/C_A)
+    V = np.real(df['bias voltage'][0])
+    J_s = J_n / np.e**((V*(1 - C_ion/C_A)*q) / (nA * kb * T))
+    return C_A, C_ion, R_ion, C_g, J_s, nA, R_srs
         
 def init_guess_find_0V(df):
     '''
@@ -243,7 +268,7 @@ def init_guess_find_0V(df):
     zrlist = np.real(df['impedance'].values)
     zilist = np.imag(df['impedance'].values)
     zrilist = np.stack((zrlist , -zilist), axis = 1)
-    img = mpimg.imread('min_sample.png')
+    img = mpimg.imread('min_sample_0V.png')
 
     fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
@@ -255,7 +280,7 @@ def init_guess_find_0V(df):
     R_ion = mini[0][0]
     
     #Find C_g
-    img = mpimg.imread('max_sample.png')
+    img = mpimg.imread('max_sample_0V.png')
 
     fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
@@ -271,9 +296,10 @@ def init_guess_find_0V(df):
     
     
     #Find J_nA and R_shnt by R_n
-    img = mpimg.imread('max_sample.png')
+    img = mpimg.imread('end_sample_0V.png')
     fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
+    ax1.set_xlim(0,2.8*max(zrlist))
     ax1.set_title('Please click the approximate end of this plot')
     ax2.imshow(img)
     ax2.set_title('Choose the first maximum like this')
@@ -725,7 +751,7 @@ def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess):
     fix_index = []
     fix_index =  param_to_fix.fix_index()
     #the fit it done below
-    result = pmf.global_fit(dfs , init_guess.values() , fix_index)
+    result = pmf.global_fit(dfs , init_guess , fix_index)
     report_fit(result)
     result_dict = result.params.valuesdict()
     #putting the resultant parameters into the popt list
@@ -784,7 +810,8 @@ def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess):
     # plt.xscale('log')
 
 
-def plot_comp(popt , init_guess, dfs):
+def plot_comp(popt , init_guess, dfs, mod = 0):
+    
     zlist_big = np.array([])   
     wlist_big = np.array([])
     vlist_big = np.array([])
@@ -869,9 +896,15 @@ def plot_comp(popt , init_guess, dfs):
         #first plot the fitted parameters
         vlist = np.ones(len(wlist)) * i
         wvlist = np.stack((wlist,vlist),axis = 1)  
-        z_fit, j_fit = pmf.pero_model(wvlist,*popt)
-        z_ig, j_ig = pmf.pero_model(wvlist,*init_guess.values(),1,1)
         
+        if mod ==0:
+            z_fit, j_fit = pmf.pero_model(wvlist,*popt)
+            C_A_0, C_ion_0, R_i, C_g, J_s, nA,  R_srs, R_shnt = init_guess.values()
+            z_ig, j_ig = pmf.pero_model(wvlist,C_A_0, C_ion_0, R_i, C_g, J_s, nA, 1,1, R_srs, R_shnt)
+        if mod == 1:
+            z_fit = pmf.pero_model_0V(wlist,*popt)
+            z_ig= pmf.pero_model_0V(wlist,*init_guess.values(mod = 1))
+            
         line3, =ax_nyq.plot(np.real(z_ig),-np.imag(z_ig),'b--', label = 'initial guess') #initial guess line
         line2, = ax_nyq.plot(np.real(z_fit),-np.imag(z_fit),'m-', label = 'fitted') #fitted parameter line
         

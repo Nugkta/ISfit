@@ -40,16 +40,45 @@ def global_no0(dfs):
 
 
 def individual_0(df):
-    return 2
+    ig = igp.init_guess_find_0V(df)
+
+    init_guess = igp.init_guess_class()
+    init_guess.update_all_0V(ig)
+    
+    print('----------',init_guess.J_nA)
+    result = pmf.global_fit([df], init_guess, mode = 1)
+    report_fit(result)
+    result_dict = result.params.valuesdict()
+    #putting the resultant parameters into the popt list
+    popt = []
+    for key in result_dict:
+        popt.append( result_dict[key])
+    dfs= [df]
+    igp.plot_comp(popt,init_guess, dfs, mod = 1 )
  
 
 
 def global_0(dfs):
+    df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
+    crit_points = igp.find_point(dfs[-1]) 
+    df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
+    ig = igp.init_guess_find(df,crit_points,V0 = True, df_0V = dfs[0]) 
+    init_guess = igp.init_guess_class()
+    init_guess.update_all(ig)
+    igp.R_ion_Slider(init_guess, dfs,crit_points)
     return 
 
 
     
-    
+
+
+
+
+
+
+
+
+
 #%% test
 
 dfs = []
@@ -68,30 +97,62 @@ wlist = np.logspace(-6,6,1000)
 a = 2 #change this to change the set of data to fit
 v = [0,.795,.846,.894]
 
-dfs=dfs[1:4]
+dfs=dfs[0:4]
 df = dfs[a]
 v = v[a]
 
 #%%
-individual_no0(df)
+global_0(dfs)
+
+
+
+
 #%%
+df= dfs[0]
+individual_0(df)
+
+
+#%%
+df= dfs[2]
+individual_no0(df)
+
+#%%
+dfs=dfs[1:4]
 global_no0(dfs)
 
 
-#%%
-z = df['impedance'].values
-plt.plot(np.real(z),-np.imag(z),'.') 
 
 #%%
-df= dfs[4]
+# wlist = np.logspace(-1,4,100)
+# wlist2 = np.logspace(-5,4,100)
+# z = pmf.pero_model_0V(wlist, 1.5e-5, 7.2e-7, 7.4e4, 3.1e-8, 107, 644288)
+# z2 = pmf.pero_model_0V(wlist2, 1.5e-5, 7.2e-7, 7.4e4, 3.1e-8, 107, 644288)
+# plt.plot(z.real,-z.imag,'.',ms = 5)
+# plt.plot(z2.real,-z2.imag,'-',linewidth = .2)
+# #plt.plot(max(z2.real),0,'rx')
 
-zlist = df['impedance'].to_numpy()
-R_srs = (min(np.real(zlist)))
-print(R_srs)
 
 
 
 
+
+# #%%
+# individual_no0(df)
+# #%%
+# global_no0(dfs)
+
+
+# #%%
+
+# init = igp.init_guess_find_0V(df)
+# #%%
+# df= dfs[0]
+# z = df['impedance'].values
+# plt.plot(np.real(z),-np.imag(z),'.') 
+
+
+# z_ig = pmf.pero_model_0V(wlist,*init)
+# plt.plot(np.real(z_ig),-np.imag(z_ig),'.')
 
 
 

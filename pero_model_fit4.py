@@ -75,7 +75,7 @@ def pero_model_0V(w, C_ion, C_g, R_ion, J_nA, R_srs, R_shnt):
     
     '''
     Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_ion)
-    Z_ion = Zcap(C_ion) + Z_d
+    Z_ion = Zcap(C_ion,w) + Z_d
     djdv = J_nA/VT
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
@@ -103,43 +103,65 @@ def pero_sep_0V(w, C_ion, C_g, R_ion, J_nA, R_srs, R_shnt):
     
 
 
-def global_fit(dfs, init_guess, fix_index):
+def global_fit(dfs, init_guess, fix_index=[], mode = 0):
     '''
     This is the function fot the global fit, so the data need to be stack together to form big arrays.
     For individual fit, just input a list of dataframes with only one dataframe as element.
+    There are three modes for the global_fit
+    0. without 0V global and individual
+    1. without 0V individual
+    2. without 0V global
     '''
-    
-    params_list = ['C_A_0', 'C_ion_0', 'R_i',' C_g',' J_s', 'nA',' V_bi_A', 'V_bi_ion','R_srs', 'R_shnt'] #the list of parameters names
+
     zlist_big = np.array([])      #because we are fitting the w,v to z, need to stack up all the w v and z list from different Vb each to be one big list. 
     wlist_big = np.array([])
     vlist_big = np.array([])
     for df in dfs:
+        print(type(df))
         zlist_big = np.concatenate((zlist_big , df['impedance'].values))
         wlist_big = np.concatenate((wlist_big , df['frequency'].values.real))
         vlist_big = np.concatenate((vlist_big , df['bias voltage'].values.real))
     wvlist_big = np.stack((wlist_big,vlist_big),axis = 1)          # the v is changing for as the condition change, so in order to do the global fit, I regard is as a variable here, and stacked it with w.
     zrlist_big = zlist_big.real 
     zilist_big = zlist_big.imag 
-    Zlist_big = np.hstack([zrlist_big, zilist_big])
-    vb = vlist_big[0]  
-    #mod = Model(lambda wvb,C_A,C_ion,R_ion,C_g,J_s,nA: pero_sep(wvb,C_A,C_ion,R_ion,C_g,J_s,nA,vb)) # using the pero_sep function to define a model for the fitting
-    mod = Model(pero_sep)
-    pars = mod.make_params(C_A_0=init_guess[0],C_ion_0=init_guess[1],R_ion=init_guess[2],C_g=init_guess[3],
-                           J_s=init_guess[4],nA=init_guess[5],V_bi_A = 1, V_bi_ion = 1,R_srs = init_guess[6] , R_shnt = init_guess[7]) #define the parameters for the fitting
+    Zlist_big = np.hstack([zrlist_big, zilist_big]) 
+    
+    
+    if mode == 0:#this mod is for without 0V global and individual
+        params_list = ['C_A_0', 'C_ion_0', 'R_i',' C_g',' J_s', 'nA',' V_bi_A', 'V_bi_ion','R_srs', 'R_shnt'] #the list of parameters names
+        #mod = Model(lambda wvb,C_A,C_ion,R_ion,C_g,J_s,nA: pero_sep(wvb,C_A,C_ion,R_ion,C_g,J_s,nA,vb)) # using the pero_sep function to define a model for the fitting
+        mod = Model(pero_sep)
+        pars = mod.make_params(C_A_0=init_guess.C_A,C_ion_0=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
+                               J_s=init_guess.J_s,nA=init_guess.nA,V_bi_A = 1, V_bi_ion = 1,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt) #define the parameters for the fitting
+    if mode == 1: #this mod is for 0 V individually
+        params_list = ['C_ion', ' C_g','R_i',' J_nA','R_srs', 'R_shnt']
+        mod = Model(pero_sep_0V)
+        pars = mod.make_params(C_ion=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
+                               J_nA=init_guess.J_nA,V_bi_A = 1,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt)
+    
+    
     print(mod.param_names, mod.independent_vars)
     #print(init_guess[2])
     for i in fix_index:    #make the user-selected fixed parameters to have a very narrow fitting range, virtually fixed.
         pars[params_list[i]].max = init_guess[i] *1.001
         pars[params_list[i]].min = init_guess[i] *0.999
-    pars['V_bi_A'].min = 0.9
-    pars[ 'V_bi_ion'].min = 0.9
-    pars['V_bi_A'].max = 1.5
-    pars[ 'V_bi_ion'].max = 1.5
-    
-    pars.pretty_print()
-    result = mod.fit(Zlist_big,pars, w_Vb =wvlist_big , weights = 1 / Zlist_big)
-    return result #This result is a class defined from the package lmfit, containing informations such as the fitted value, uncertainties, initial guess ...
+    if mode == 0:
+        pars['V_bi_A'].min = 0.9
+        pars[ 'V_bi_ion'].min = 0.9
+        pars['V_bi_A'].max = 1.5
+        pars[ 'V_bi_ion'].max = 1.5
+        
 
+    
+    if mode == 0:
+        result = mod.fit(Zlist_big,pars, w_Vb =wvlist_big , weights = 1 / Zlist_big)
+        return result
+    elif mode == 1: 
+        result = mod.fit(Zlist_big,pars, w =wlist_big) 
+                         #,weights = Zlist_big)
+        return result #This result is a class defined from the package lmfit, containing informations such as the fitted value, uncertainties, initial guess ...
+   
+    pars.pretty_print()
 
 
 
