@@ -21,15 +21,15 @@ kb = 1.38e-23
 def Zcap(c, w): #returns the impedance of a capacitor
     return 1 / (1j * w * c)
 
-def pero_model(w_Vb, C_A_0, C_ion_0, R_i, C_g, J_s, nA, V_bi_A, V_bi_ion, R_srs, R_shnt): #w is the list of frequency, the independent variable
+def pero_model(w_Vb, C_A_0, C_ion_0, R_i, C_g, J_s, nA, V_bi, R_srs, R_shnt): #w is the list of frequency, the independent variable
     '''
     The is the model of the perovskite, by inputting C_A, C_B, R_i, C_g, J_s, nA, Vb as parameters, w(frequency) as the independent variable,
     the corresponding impedance Z(dependent variable) can be obtainded, together with the current in electronic branch J1.
     '''
     w = w_Vb[:,0]
     Vb = w_Vb[:,1]
-    C_ion = C_ion_0 * np.sqrt(V_bi_ion/(V_bi_ion - Vb))
-    C_A = C_A_0 * np.sqrt(V_bi_A/(V_bi_A - Vb))
+    C_ion = C_ion_0 * np.sqrt(V_bi/(V_bi - Vb))
+    C_A = C_A_0 * np.sqrt(V_bi/(V_bi - Vb))
     C_B = 1 / (1/C_ion - 1/C_A)
     Z_d = 1 / (1 / Zcap(C_g , w) + 1 / R_i)
     Z_ion = (Zcap(C_A , w) + Zcap(C_B , w) + Z_d) #the impedance of the ionic branch
@@ -47,7 +47,7 @@ def pero_model(w_Vb, C_A_0, C_ion_0, R_i, C_g, J_s, nA, V_bi_A, V_bi_ion, R_srs,
     return Z_tot3, J1      #returning the total impedance and the current in electronic branch
 
 
-def pero_model_ind(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,Vb,): # for individual set
+def pero_model_ind(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,Vb): # for individual set
     '''
     The is the model of the perovskite, by inputting C_A, C_B, R_i, C_g, J_s, nA, Vb as parameters, w(frequency) as the independent variable,
     the corresponding impedance Z(dependent variable) can be obtainded, together with the current in electronic branch J1.
@@ -83,15 +83,20 @@ def pero_model_0V(w, C_ion, C_g, R_ion, J_nA, R_srs, R_shnt):
     Z_tot3 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
     return Z_tot3 
 
+def pero_ind_sep(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,Vb):
+    z,j = pero_model_ind(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,Vb)
+    return np.hstack([z.real, z.imag])
 
-def pero_sep(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi_A, V_bi_ion, R_srs, R_shnt): 
+
+
+def pero_sep(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA,  V_bi, R_srs, R_shnt): 
     '''
     This is the function used as the model for the curve fit.
     
     Because the pero_model will return a complex Z, while the curve fitting function does not support complex fitting,
     the function here will separate the real and imaginary part of the Z and put them in an array for the fitting function.
     '''
-    z = pero_model(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi_A, V_bi_ion, R_srs, R_shnt)[0] # only keep the Z_tot, not J1
+    z = pero_model(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi, R_srs, R_shnt)[0] # only keep the Z_tot, not J1
     return np.hstack([z.real, z.imag])     # this will return a list of the form [z1real, z2real,...,z1imag, z2imag, ...]
 
 
@@ -128,38 +133,50 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 0):
     
     
     if mode == 0:#this mod is for without 0V global and individual
-        params_list = ['C_A_0', 'C_ion_0', 'R_i',' C_g',' J_s', 'nA',' V_bi_A', 'V_bi_ion','R_srs', 'R_shnt'] #the list of parameters names
+        params_list = ['C_A_0', 'C_ion_0', 'R_i',' C_g',' J_s', 'nA', 'V_bi','R_srs', 'R_shnt'] #the list of parameters names
+        params_list2 = ['C_A', 'C_ion', 'R_i',' C_g',' J_s', 'nA', 'V_bi','R_srs', 'R_shnt']
         #mod = Model(lambda wvb,C_A,C_ion,R_ion,C_g,J_s,nA: pero_sep(wvb,C_A,C_ion,R_ion,C_g,J_s,nA,vb)) # using the pero_sep function to define a model for the fitting
         mod = Model(pero_sep)
         pars = mod.make_params(C_A_0=init_guess.C_A,C_ion_0=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
-                               J_s=init_guess.J_s,nA=init_guess.nA,V_bi_A = 1, V_bi_ion = 1,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt) #define the parameters for the fitting
+                               J_s=init_guess.J_s,nA=init_guess.nA, V_bi = 1,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt) #define the parameters for the fitting
     if mode == 1: #this mod is for 0 V individually
         params_list = ['C_ion', ' C_g','R_i',' J_nA','R_srs', 'R_shnt']
         mod = Model(pero_sep_0V)
         pars = mod.make_params(C_ion=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
-                               J_nA=init_guess.J_nA,V_bi_A = 1,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt)
-    
-    
+                               J_nA=init_guess.J_nA, V_bi= 1,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt)
+    if mode == 2: #this mode is for no 0V individually
+        params_list = ['C_A', 'C_ion', 'R_i',' C_g',' J_s', 'nA','R_srs', 'R_shnt']
+        mod = Model(lambda w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt:pero_ind_sep(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,vlist_big[0]) )
+        pars = mod.make_params(C_A = init_guess.C_A,C_ion=init_guess.C_ion,R_i=init_guess.R_ion,C_g=init_guess.C_g,
+                               J_s=init_guess.J_s,nA=init_guess.nA,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt)
+        print('testtttttttttttt', init_guess.R_ion)    
     print(mod.param_names, mod.independent_vars)
     #print(init_guess[2])
     for i in fix_index:    #make the user-selected fixed parameters to have a very narrow fitting range, virtually fixed.
-        pars[params_list[i]].max = init_guess[i] *1.001
-        pars[params_list[i]].min = init_guess[i] *0.999
+        pars[params_list[i]].max = getattr(init_guess,params_list2[i]) *1.001
+        pars[params_list[i]].min =getattr(init_guess,params_list2[i]) *0.999
     if mode == 0:
-        pars['V_bi_A'].min = 0.9
-        pars[ 'V_bi_ion'].min = 0.9
-        pars['V_bi_A'].max = 1.5
-        pars[ 'V_bi_ion'].max = 1.5
+        pars['V_bi'].min = 0.9
+        pars[ 'V_bi'].max = 1.5
+        pars['nA'].min = 1
         
-
     
     if mode == 0:
-        result = mod.fit(Zlist_big,pars, w_Vb =wvlist_big , weights = 1 / Zlist_big)
+        pars.pretty_print()
+        result = mod.fit(Zlist_big,pars, w_Vb = wvlist_big , weights = 1 / Zlist_big)
         return result
     elif mode == 1: 
-        result = mod.fit(Zlist_big,pars, w =wlist_big) 
+        pars.pretty_print()
+        result = mod.fit(Zlist_big,pars, w = wlist_big) 
                          #,weights = Zlist_big)
         return result #This result is a class defined from the package lmfit, containing informations such as the fitted value, uncertainties, initial guess ...
+    elif mode == 2: 
+        pars.pretty_print()
+        result = mod.fit(Zlist_big,pars, w = wlist_big) 
+                        #,weights = Zlist_big)
+        return result #This result is a class defined from the package lmfit, containing informations such as the fitted value, uncertainties, initial guess ...
+  
+    
    
     pars.pretty_print()
 

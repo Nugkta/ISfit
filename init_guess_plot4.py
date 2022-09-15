@@ -75,8 +75,8 @@ class init_guess_class:
     def update_R_ion(self, R_ion): #update R_ion only
         self.R_ion = R_ion
         
-    def values(self,mod = 0): #function for returning all the values of the initial guess
-        if mod == 0:    
+    def values(self,mode = 0): #function for returning all the values of the initial guess
+        if mode == 0:    
             return [self.C_A, 
                         self.C_ion ,
                         self.R_ion ,
@@ -85,11 +85,21 @@ class init_guess_class:
                         self.nA,
                         self.R_srs,
                         self.R_shnt]
-        if mod == 1:
+        if mode == 1: #0V individual
             return [self.C_ion ,
                         self.C_g ,
                         self.R_ion ,
                         self.J_nA,
+                        self.R_srs,
+                        self.R_shnt]
+        
+        if mode == 2: #no 0V individual
+            return [self.C_A,
+                self.C_ion ,
+                self.R_ion ,
+                        self.C_g ,
+                        self.J_s,
+                        self.nA,
                         self.R_srs,
                         self.R_shnt]
         
@@ -357,7 +367,7 @@ wlist = np.logspace(-3, 6 ,10000)
 
 
 
-def R_ion_Slider(init_guess, dfs,crit_points):
+def R_ion_Slider(init_guess, dfs,crit_points, mode = 0):
     df = dfs[-1]
     v = df['bias voltage'][0]
     simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
@@ -513,7 +523,7 @@ def R_ion_Slider(init_guess, dfs,crit_points):
     # the button to proceed to the next step    
     ax_next = plt.axes([0.8, 0.925, 0.1, 0.04])    #axis of the next step pattern
     button_next = Button(ax_next , 'Next step', hovercolor='0.975')
-    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points))
+    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points,mode))
     
     
     resetax._button = button_R
@@ -524,7 +534,7 @@ def R_ion_Slider(init_guess, dfs,crit_points):
 
 #%%
 
-def all_param_sliders(event,init_guess, dfs, crit_points):
+def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     plt.close()
     df = dfs[-1]
     v = df['bias voltage'][0]
@@ -711,7 +721,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points):
     # the button to proceed to the next step    
     ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
     button_next = Button(ax_next , 'Start Fitting', hovercolor='0.975')
-    button_next.on_clicked(lambda event:fit_plot_comp_plots(event,param_to_fix,dfs,init_guess))
+    button_next.on_clicked(lambda event:fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,mode))
     
     ax_next._button_next = button_next
     resetax._button = button
@@ -743,22 +753,22 @@ def all_param_sliders(event,init_guess, dfs, crit_points):
 #     fig.suptitle('Comparison between the initial guess and the fitted parameters', fontsize = 16)
 
 
-def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess):
+def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,mode = 0):
     '''
     doing the fitting and plot the comparison plot with the original data and the init_guess 
     '''
     plt.close()
-    fix_index = []
     fix_index =  param_to_fix.fix_index()
     #the fit it done below
-    result = pmf.global_fit(dfs , init_guess , fix_index)
+    result = pmf.global_fit(dfs , init_guess , fix_index,mode)
+    print(type(result))
     report_fit(result)
     result_dict = result.params.valuesdict()
     #putting the resultant parameters into the popt list
     popt = []
     for key in result_dict:
         popt.append( result_dict[key])
-    plot_comp(popt , init_guess, dfs)
+    plot_comp(popt , init_guess, dfs,mode)
     
     
     
@@ -810,7 +820,7 @@ def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess):
     # plt.xscale('log')
 
 
-def plot_comp(popt , init_guess, dfs, mod = 0):
+def plot_comp(popt , init_guess, dfs, mode = 0):
     
     zlist_big = np.array([])   
     wlist_big = np.array([])
@@ -897,13 +907,16 @@ def plot_comp(popt , init_guess, dfs, mod = 0):
         vlist = np.ones(len(wlist)) * i
         wvlist = np.stack((wlist,vlist),axis = 1)  
         
-        if mod ==0:
+        if mode ==0: #global no 0V
             z_fit, j_fit = pmf.pero_model(wvlist,*popt)
             C_A_0, C_ion_0, R_i, C_g, J_s, nA,  R_srs, R_shnt = init_guess.values()
-            z_ig, j_ig = pmf.pero_model(wvlist,C_A_0, C_ion_0, R_i, C_g, J_s, nA, 1,1, R_srs, R_shnt)
-        if mod == 1:
+            z_ig, j_ig = pmf.pero_model(wvlist,C_A_0, C_ion_0, R_i, C_g, J_s, nA, 1, R_srs, R_shnt)
+        if mode == 1: #0V
             z_fit = pmf.pero_model_0V(wlist,*popt)
-            z_ig= pmf.pero_model_0V(wlist,*init_guess.values(mod = 1))
+            z_ig= pmf.pero_model_0V(wlist,*init_guess.values(mode = 1))
+        if mode == 2:#ind without 0V
+            z_fit, j_fit = pmf.pero_model_ind(wlist,*popt,vlist_big[0])
+            z_ig, j_ig= pmf.pero_model_ind(wlist,*init_guess.values(mode = 2),vlist_big[0])            
             
         line3, =ax_nyq.plot(np.real(z_ig),-np.imag(z_ig),'b--', label = 'initial guess') #initial guess line
         line2, = ax_nyq.plot(np.real(z_fit),-np.imag(z_fit),'m-', label = 'fitted') #fitted parameter line
@@ -933,13 +946,13 @@ def plot_comp(popt , init_guess, dfs, mod = 0):
 
 
 
-def __main__(dfs):
+def __main__(dfs, mode = 0):
     df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
     crit_points = find_point(dfs[-1]) 
     ig = init_guess_find(df,crit_points) 
     init_guess = init_guess_class()
     init_guess.update_all(ig)
-    R_ion_Slider(init_guess, dfs,crit_points)
+    R_ion_Slider(init_guess, dfs,crit_points, mode)
 
 
 # def __main__(dfs):

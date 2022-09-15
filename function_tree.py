@@ -18,18 +18,18 @@ from matplotlib.widgets import TextBox,Slider, Button,CheckButtons
 from lmfit import minimize, Minimizer, Parameters, Parameter, report_fit
 
 
-def individual_no0(df):
+def individual_no0V(df):
     '''
     This is for the case of individual fit and V is not 0.
     this function is the same as the original only version of fitting scenerio, so
     here I directly used the previously written function
     '''
     dfs = [df] #making the individual dataframe a list to use the global_fit function
-    igp.__main__(dfs) 
+    igp.__main__(dfs,mode = 2) 
     
 
 
-def global_no0(dfs):
+def global_no0V(dfs):
     '''
     This is for the case of global fit and no V = 0 data
     Could also be adapted directly from the previous main function
@@ -39,7 +39,7 @@ def global_no0(dfs):
     
 
 
-def individual_0(df):
+def individual_0V(df):
     ig = igp.init_guess_find_0V(df)
 
     init_guess = igp.init_guess_class()
@@ -54,11 +54,11 @@ def individual_0(df):
     for key in result_dict:
         popt.append( result_dict[key])
     dfs= [df]
-    igp.plot_comp(popt,init_guess, dfs, mod = 1 )
+    igp.plot_comp(popt,init_guess, dfs, mode = 1 )
  
 
 
-def global_0(dfs):
+def global_0V(dfs):
     df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
     crit_points = igp.find_point(dfs[-1]) 
     df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
@@ -102,27 +102,27 @@ df = dfs[a]
 v = v[a]
 
 #%%
-global_0(dfs)
+global_0V(dfs)
 
 
 
 
 #%%
 df= dfs[0]
-individual_0(df)
+individual_0V(df)
 
 
 #%%
 df= dfs[2]
-individual_no0(df)
+individual_no0V(df)
 
 #%%
 dfs=dfs[1:4]
-global_no0(dfs)
+global_no0V(dfs)
 
 
 
-#%%
+    #%%
 # wlist = np.logspace(-1,4,100)
 # wlist2 = np.logspace(-5,4,100)
 # z = pmf.pero_model_0V(wlist, 1.5e-5, 7.2e-7, 7.4e4, 3.1e-8, 107, 644288)
