@@ -985,7 +985,7 @@ def __main__(dfs, mode = 0):
     
     k = crit_points[1] / crit_points[0]
     nA_e , J_s_e = find_nA_Js(dfs, k, mode = 1)
-    print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to be', nA_e , J_s_e)
+    print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to  %.3e %.3e'%(nA_e , J_s_e))
     
     ig = init_guess_find(df,crit_points) 
     init_guess = init_guess_class()
