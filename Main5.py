@@ -24,7 +24,7 @@ import function_tree as ft
 
 def get_clean_data():
     dfs = []
-    fold_name = input('Please input the name of the folder that the experiment data are stored: ')
+    fold_name = input('Input data folder name: ')
     for file in glob.glob(fold_name + '/**.xlsx'):  #data must be store in .xlsx files
         df = pd.read_excel(file)
         df = df[['frequency','z_real','z_imag','applied voltage','J', 'J_ph']]
@@ -55,15 +55,15 @@ def get_clean_data():
 
 def __main__(): #the input must be a list of dataframe, even when there is only one dataframe
     dfs = get_clean_data()
-    V0 = input('Does the sets of data contain data set with bias voltage = 0? y/n: ')
-    ind_glo = input('Are there more than one data sets? y/n: ')
+    V0 = input('Do the data contain a set with 0 V bias? y/n: ')
+    ind_glo = input('More than one bias voltage? y/n: ')
     if V0 == 'y' and ind_glo == 'n':
         ft.individual_0V(dfs)
     elif V0 == 'y' and ind_glo == 'y':
         ft.global_0V(dfs)
-    elif V0 == 'n' and ind_glo == 'y':
-        ft.individual_no0V(dfs)
     elif V0 == 'n' and ind_glo == 'n':
+        ft.individual_no0V(dfs)
+    elif V0 == 'n' and ind_glo == 'y':
         ft.global_no0V(dfs)
 
 

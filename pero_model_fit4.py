@@ -41,9 +41,8 @@ def pero_model(w_Vb, C_A_0, C_ion_0, R_i, C_g, J_s, nA, V_bi, R_srs, R_shnt): #w
     djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
-    Z_tot2 = Z_tot + R_srs
-    Z_tot3 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
-    
+    Z_tot2 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
+    Z_tot3 = Z_tot2 + R_srs
     return Z_tot3, J1      #returning the total impedance and the current in electronic branch
 
 
@@ -63,8 +62,8 @@ def pero_model_ind(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,Vb): # for in
     djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
-    Z_tot2 = Z_tot + R_srs
-    Z_tot3 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
+    Z_tot2 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
+    Z_tot3 = Z_tot2 + R_srs
     return Z_tot3, J1      #returning the total impedance and the current in electronic branch
 
 
@@ -79,8 +78,8 @@ def pero_model_0V(w, C_ion, C_g, R_ion, J_nA, R_srs, R_shnt):
     djdv = J_nA/VT
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
-    Z_tot2 = Z_tot + R_srs
-    Z_tot3 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
+    Z_tot2 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_srs and the R_shnt 
+    Z_tot3 = Z_tot2 + R_srs
     return Z_tot3 
 
 def pero_ind_sep(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,Vb):

@@ -33,7 +33,7 @@ def global_no0V(dfs):
     This is for the case of global fit and no V = 0 data
     Could also be adapted directly from the previous main function
     '''
-    igp.__main__(dfs)
+    igp.__main__(dfs, mode = 0)
     
     
 
@@ -65,7 +65,7 @@ def global_0V(dfs):
     
     k = crit_points[1] / crit_points[0]
     nA_e , J_s_e = igp.find_nA_Js(dfs, k, mode = 0)
-    print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to be %.3e %.3e'%(nA_e , J_s_e))
+    print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to be %.3e %.3e'%( J_s_e, nA_e))
     
     # df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
     ig = igp.init_guess_find(df,crit_points,V0 = True, df_0V = dfs[0]) 

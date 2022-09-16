@@ -161,9 +161,9 @@ def find_extremum(df):
     # plt.show()
     
     # plt.figure()
-    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
-    ax1.set_title('Please click the maxima in this plot')
+    ax1.set_title(' Click the maxima on this plot for the initial guesses')
     ax2.imshow(img)
     ax2.set_title('Choose the two maxima like this')
     vertices = plt.ginput(2)
@@ -171,9 +171,9 @@ def find_extremum(df):
     
     
     img2 = mpimg.imread('min_sample.png')
-    fig2, (ax3,ax4) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    fig2, (ax3,ax4) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax3.plot(zrlist,-zilist,'.')
-    ax3.set_title('Please click the minimum in this plot')
+    ax3.set_title(' click the minimum on this plot for the initial guesses')
     ax4.imshow(img2)
     ax4.set_title('Choose the minimum like this')
     mini = plt.ginput(1)
@@ -229,9 +229,9 @@ def find_R_ion(df):
     zrilist = np.stack((zrlist , -zilist), axis = 1)
     img = mpimg.imread('min_sample.png')
 
-    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
-    ax1.set_title('Please click the minimum in this plot')
+    ax1.set_title(' click the minimum on this plot for the initial guesses')
     ax2.imshow(img)
     ax2.set_title('Choose the minimum like this')
     mini = plt.ginput(1)
@@ -251,7 +251,7 @@ def init_guess_find(df ,crit_points, V0 = False,df_0V = None):
     
     
     if V0 is False: 
-        R_ion = float(input('Please input your guess of R_ion: '))
+        R_ion = float(input(' input your guess of R_ion: '))
     if V0 is True:
         R_ion = find_R_ion(df_0V)
     R_n8 , R_n0 , w_n , w_t , C_G ,w_r, R_srs = crit_points
@@ -280,9 +280,9 @@ def init_guess_find_0V(df):
     zrilist = np.stack((zrlist , -zilist), axis = 1)
     img = mpimg.imread('min_sample_0V.png')
 
-    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
-    ax1.set_title('Please click the minimum in this plot')
+    ax1.set_title(' click the minimum on this plot for the initial guesses')
     ax2.imshow(img)
     ax2.set_title('Choose the minimum like this')
     mini = plt.ginput(1)
@@ -292,9 +292,9 @@ def init_guess_find_0V(df):
     #Find C_g
     img = mpimg.imread('max_sample_0V.png')
 
-    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
-    ax1.set_title('Please click the first maximum in this plot')
+    ax1.set_title(' click the first maximum on this plot for the initial guesses')
     ax2.imshow(img)
     ax2.set_title('Choose the first maximum like this')
     maxi = plt.ginput(1)
@@ -307,10 +307,10 @@ def init_guess_find_0V(df):
     
     #Find J_nA and R_shnt by R_n
     img = mpimg.imread('end_sample_0V.png')
-    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(15,6),gridspec_kw={'width_ratios': [2, 1]})
+    fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
     ax1.set_xlim(0,2.8*max(zrlist))
-    ax1.set_title('Please click the approximate end of this plot')
+    ax1.set_title(' click the approximate end of this plot')
     ax2.imshow(img)
     ax2.set_title('Choose the first maximum like this')
     end = plt.ginput(1)
@@ -399,10 +399,11 @@ wlist = np.logspace(-3, 6 ,10000)
 
 
 def R_ion_Slider(init_guess, dfs,crit_points, mode = 0):
+    #print('vvvvvvvvvvvvvvvvvvvvvvvv ',mode)
     df = dfs[-1]
     v = df['bias voltage'][0]
     simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
-    fig , ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(2 , 2,figsize = (20,10)) #opening the canvas for the plot of Nyquist
+    fig , ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(2 , 2,figsize = (16,7)) #opening the canvas for the plot of Nyquist
 
 
     #Nyquist plot
@@ -447,7 +448,7 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = 0):
     ax2.set_xscale('log')
     ax2.set_ylabel('|Z|')
     ax2.set_xlabel(r'frequency $\omega$')
-    ax2.set_title(r'|Z|, $\theta$ vs. frequency')
+    ax2.set_title(r'|Z|, $\theta$ (rad) vs. frequency')
     ax2.legend(loc = 3)
     ax2.spines['left'].set_color('c')
     ax2.tick_params(axis='y', colors='c')
@@ -455,10 +456,10 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = 0):
     #theta plot
 
     ax_t = ax2.twinx()
-    line_t, = ax_t.plot(df['frequency'],np.angle(df['impedance'].values),'.',ms = 4,color = 'peru', label = r'experiment $\theta$')
+    line_t, = ax_t.plot(df['frequency'],np.angle(df['impedance'].values),'.',ms = 4,color = 'peru', label = r'experiment $\theta$ ')
     line_t_ig, = ax_t.plot(wlist , np.angle(simu_Z),'--',ms = 4,color = 'orange', label = r'initial guess $\theta$')
     ax_t.set_xscale('log')
-    ax_t.set_ylabel(r'$\theta$')
+    ax_t.set_ylabel(r'$\theta$ (rad)')
     ax_t.legend()
     ax_t.spines['right'].set_color('orange')
     ax_t.tick_params(axis='y', colors='orange')
@@ -484,6 +485,7 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = 0):
 
 
     def update_R_ion(val,points):
+
         R_ion = np.exp(R_slider.val)
         iglist = init_guess_slider(df,points,R_ion)
         init_guess.update_all(iglist)
@@ -548,7 +550,7 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = 0):
 
     initial_text = ""
     axbox = plt.axes([0.1, 0.07, 0.04, 0.03])
-    text_box = TextBox(axbox, 'Set R_ion manually: ', initial=initial_text)
+    text_box = TextBox(axbox, 'Set R_ion : ', initial=initial_text)
     text_box.on_submit(lambda text: submit(text, crit_points))
     
     # the button to proceed to the next step    
@@ -570,7 +572,8 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     df = dfs[-1]
     v = df['bias voltage'][0]
     simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
-    fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(18, 12),ncols = 2 , nrows = 2)
+    fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(16,7),ncols = 2 , nrows = 2)
+
 
 
     #Nyquist plot 
@@ -587,6 +590,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     line_zr, = ax1.plot(df['frequency'],np.real(df['impedance'].values),'b.',ms = 4, label = 'experiment Z\' ')
     line_zr_ig, = ax1.plot(wlist,np.real(simu_Z),'c--', label = ' initial guess Z\'')
     ax1.set_xscale('log')
+    ax1.set_yscale('log')
     ax1.set_ylabel('Z\'')
     ax1.set_xlabel(r'frequency $\omega$')
     ax1.set_title('real Z, effective capacitance vs. frequency')
@@ -613,9 +617,10 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     line_absz, = ax2.plot(df['frequency'],np.abs(df['impedance'].values),'b.',ms = 4, label = 'experiment |Z| ')
     line_absz_ig, = ax2.plot(wlist,np.abs(simu_Z),'c--', label = ' initial guess |Z|')
     ax2.set_xscale('log')
+    ax2.set_yscale('log')
     ax2.set_ylabel('|Z|')
     ax2.set_xlabel(r'frequency $\omega$')
-    ax2.set_title(r'|Z|, $\theta$ vs. frequency')
+    ax2.set_title(r'|Z|, $\theta$ (rad) vs. frequency')
     ax2.legend(loc = 3, fontsize = 'small')
     ax2.spines['left'].set_color('c')
     ax2.tick_params(axis='y', colors='c')
@@ -623,10 +628,10 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     #theta plot
 
     ax_t = ax2.twinx()
-    line_t, = ax_t.plot(df['frequency'],np.angle(df['impedance'].values),'.',ms = 4,color = 'peru', label = r'experiment $\theta$')
+    line_t, = ax_t.plot(df['frequency'],np.angle(df['impedance'].values),'.',ms = 4,color = 'peru', label = r'experiment $\theta$ ')
     line_t_ig, = ax_t.plot(wlist , np.angle(simu_Z),'--',ms = 4,color = 'orange', label = r'initial guess $\theta$')
     ax_t.set_xscale('log')
-    ax_t.set_ylabel(r'$\theta$')
+    ax_t.set_ylabel(r'$\theta$ (rad)')
     ax_t.legend(loc = 1, fontsize = 'small')
     ax_t.spines['right'].set_color('orange')
     ax_t.tick_params(axis='y', colors='orange')
@@ -645,7 +650,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
                   (1/10 * init_guess.C_g, 10 * init_guess.C_g),
                   (1/2 * init_guess.J_s, 3 * init_guess.J_s),
                   (1/1.5 * init_guess.nA, 1.5 * init_guess.nA),
-                  (1/1.5 * init_guess.R_srs, 1.5 * init_guess.R_srs)
+                  (.01 * init_guess.R_srs, 100 * init_guess.R_srs)
                   ]
 
 
@@ -661,7 +666,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
             valinit = init_guess.values()[i],
             )
         textboxs[i] = TextBox(ax_list_t[i], 
-                              'Set '+ param_name[i]+' manually: ',
+                              'Set '+ param_name[i]+' : ',
                               initial='')
 
     sl_val_list =[]
@@ -738,7 +743,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
 
     # Add a textbox as the title of the checkbottons
     text_ax = plt.axes([0.95, 0.24, 0.0, 0.0])
-    label = 'Parameters to fix during fitting'
+    label = 'Fix parameter'
     textbox = TextBox(text_ax,label)
     
 
@@ -801,8 +806,7 @@ def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,mode = 0):
     popt = []
     for key in result_dict:
         popt.append( result_dict[key])
-    plot_comp(popt , init_guess, dfs,mode)
-    
+    plot_comp(popt , init_guess, dfs, mode)
     
     
     
@@ -867,8 +871,7 @@ def plot_comp(popt , init_guess, dfs, mode = 0):
     
     
     
-    
-    fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(18, 12),ncols = 2 , nrows = 2)
+    fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(16,7),ncols = 2 , nrows = 2)
     fig.suptitle('Comparison between the initial guess and the fitted parameters', fontsize = 16)
 
     #The Nyquist plot
@@ -885,6 +888,7 @@ def plot_comp(popt , init_guess, dfs, mode = 0):
     # line_zr_ig, = ax1.plot(wlist,np.real(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess Z\'')
     # line_zr_fit, = ax1.plot(wlist,np.real(z),linestyle = 'solid',color = 'm', label = ' fitted Z\'')
     ax1.set_xscale('log')
+    ax1.set_yscale('log')
     ax1.set_ylabel('Z\'')
     ax1.set_xlabel(r'frequency $\omega$')
     ax1.set_title('Real Z, effective capacitance vs. frequency')
@@ -914,9 +918,10 @@ def plot_comp(popt , init_guess, dfs, mode = 0):
     # line_absz_ig, = ax2.plot(wlist,np.abs(z_ig),linestyle = 'dotted',color = 'c', label = ' initial guess |Z|')
     # line_absz_ig, = ax2.plot(wlist,np.abs(z),linestyle = 'solid',color = 'm', label = ' fitted |Z|')
     ax2.set_xscale('log')
+    ax2.set_yscale('log')
     ax2.set_ylabel('|Z|')
     ax2.set_xlabel(r'frequency $\omega$')
-    ax2.set_title(r'|Z|, $\theta$ vs. frequency')
+    ax2.set_title(r'|Z|, $\theta$ (rad) vs. frequency')
     ax2.legend(loc = 3, fontsize = 'small')
     ax2.spines['left'].set_color('c')
     ax2.tick_params(axis='y', colors='c')
@@ -924,11 +929,11 @@ def plot_comp(popt , init_guess, dfs, mode = 0):
     #theta plot
 
     ax_t = ax2.twinx()
-    line_t, = ax_t.plot(wlist_big,np.angle(z_ex),'x',ms = 4,color = 'peru', label = r'experiment $\theta$')
+    line_t, = ax_t.plot(wlist_big,np.angle(z_ex),'x',ms = 4,color = 'peru', label = r'experiment $\theta$ ')
     # line_t_ig, = ax_t.plot(wlist , np.angle(z_ig),linestyle = 'dotted',ms = 4,color = 'orange', label = r'initial guess $\theta$')
-    # line_t_ig, = ax_t.plot(wlist , np.angle(z),linestyle = 'solid',ms = 4,color = 'y', label = r'fitted $\theta$')
+    # line_t_ig, = ax_t.plot(wlist , np.angle(z),linestyle = 'solid',ms = 4,color = 'y', label = r'fitted $\theta$ (rad)')
     ax_t.set_xscale('log')
-    ax_t.set_ylabel(r'$\theta$')
+    ax_t.set_ylabel(r'$\theta$ (rad)')
     ax_t.legend(loc = 1, fontsize = 'small')
     ax_t.spines['right'].set_color('orange')
     ax_t.tick_params(axis='y', colors='orange')
@@ -939,8 +944,10 @@ def plot_comp(popt , init_guess, dfs, mode = 0):
         #first plot the fitted parameters
         vlist = np.ones(len(wlist)) * i
         wvlist = np.stack((wlist,vlist),axis = 1)  
+
         
         if mode ==0: #global no 0V
+            
             z_fit, j_fit = pmf.pero_model(wvlist,*popt)
             C_A_0, C_ion_0, R_i, C_g, J_s, nA,  R_srs, R_shnt = init_guess.values()
             z_ig, j_ig = pmf.pero_model(wvlist,C_A_0, C_ion_0, R_i, C_g, J_s, nA, 1, R_srs, R_shnt)
@@ -968,7 +975,7 @@ def plot_comp(popt , init_guess, dfs, mode = 0):
         line_absz_ig, = ax2.plot(wlist,np.abs(z_fit),linestyle = 'solid',color = 'm', label = ' fitted |Z|')
         
         line_t_ig, = ax_t.plot(wlist , np.angle(z_ig),linestyle = 'dotted',ms = 4,color = 'orange', label = r'initial guess $\theta$')
-        line_t_ig, = ax_t.plot(wlist , np.angle(z_fit),linestyle = 'solid',ms = 4,color = 'y', label = r'fitted $\theta$')
+        line_t_ig, = ax_t.plot(wlist , np.angle(z_fit),linestyle = 'solid',ms = 4,color = 'y', label = r'fitted $\theta$ (rad)')
 
     ax_nyq.legend(['experiemental','initial guess','fitted'])
     ax1.legend(['experiemental','initial guess','fitted'],loc = 3, fontsize = 'small')
@@ -985,9 +992,9 @@ def __main__(dfs, mode = 0):
     
     k = crit_points[1] / crit_points[0]
     nA_e , J_s_e = find_nA_Js(dfs, k, mode = 1)
-    print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to  %.3e %.3e'%(nA_e , J_s_e))
-    
+    print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to  %.3e %.3e'%( J_s_e,nA_e))
     ig = init_guess_find(df,crit_points) 
+    
     init_guess = init_guess_class()
     init_guess.update_all(ig)
     R_ion_Slider(init_guess, dfs,crit_points, mode)
