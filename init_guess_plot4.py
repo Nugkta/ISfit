@@ -333,7 +333,7 @@ def init_guess_slider(df, points, R_ion):
     The function for the slider of R_ion (known points and R_ion), different from the previous one because
     here the R_ion is define by the slider(as function input), not by user input directly.
     '''
-    R_n8 , R_n0 , w_n , w_t , C_G ,w_r = points
+    R_n8 , R_n0 , w_n , w_t , C_G ,w_r, R_srs = points
     J_n = np.real(df['recomb current'][0]) 
     k = R_n0 / R_n8
     nA = J_n *R_n8 *q / ( kb *T)
@@ -344,7 +344,7 @@ def init_guess_slider(df, points, R_ion):
     C_B = 1 / (1/C_ion - 1/C_A)
     V = np.real(df['bias voltage'][0])
     J_s = J_n / np.e**((V*(1 - C_ion/C_A)*q) / (nA * kb * T)) 
-    return C_A, C_ion, R_ion, C_g, J_s, nA
+    return C_A, C_ion, R_ion, C_g, J_s, nA, R_srs
 
 
 def get_init_guess(df): #put together crit points and init guess
@@ -353,6 +353,37 @@ def get_init_guess(df): #put together crit points and init guess
 
 
 
+
+
+def find_k(dfs): #function for finding an appropriate k (ratio of C_a/(C_a +C_b) from a list of dataframes just like above
+    df = dfs[-1]#because the last one has the stabliest k
+    zlist = df['impedance'].to_numpy()
+    wzlist = df[['frequency','impedance']].to_numpy()
+    nhlist, nllist= find_extremum(df)
+    r_reci_e = wzlist[nllist[0]][1].real
+    r_rec0_e = wzlist[-1][1].real
+    k = r_rec0_e / r_reci_e
+    return k
+
+
+def find_nA_Js(dfs,k, mode): #mode 0 is for global with 0V, mode 1 is for global without 0V
+    # k = find_k(dfs)
+    jlist = []
+    vlist = []  
+    for wzjvdf in dfs:
+        vlist.append(wzjvdf['bias voltage'].values[-1]) #-1 because the element at -1 corresponds to lowest frequency ~steady state
+        jlist.append(wzjvdf['recomb current'].values[-1])
+    if mode == 0:
+        log_jlist =np.log( np.array(jlist)[1:].real) #[1:]because the first element gives log0
+        vlist = np.array(vlist).real[1:]
+    if mode == 1:
+        log_jlist =np.log( np.array(jlist).real) #[1:]because the first element gives log0
+        vlist = np.array(vlist).real
+    grad,b = np.polyfit(log_jlist , vlist ,1)
+    log_Js = -b/grad
+    Js_e = np.exp(log_Js)
+    nA_e = 1/VT * grad/k
+    return  Js_e,nA_e
 
 
 
@@ -606,19 +637,20 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     ax_list_t = {} #stores axis postion for the textbox
     sliders = {}
     textboxs = {}
-    param_name = ['C_A', 'C_ion', 'R_ion', 'C_g', 'J_s', 'nA' ]
-    param_dict ={'C_A':0, 'C_ion':1, 'R_ion':2, 'C_g':3, 'J_s':4, 'nA':5}    #establish the correspondance between the order and the name of the parameters
+    param_name = ['C_A', 'C_ion', 'R_ion', 'C_g', 'J_s', 'nA' ,'R_srs']
+    param_dict ={'C_A':0, 'C_ion':1, 'R_ion':2, 'C_g':3, 'J_s':4, 'nA':5,'R_srs':6}    #establish the correspondance between the order and the name of the parameters
     range_list = [(1/3 * init_guess.C_A, 3 * init_guess.C_A ),
                   (1/3 * init_guess.C_ion, 3 * init_guess.C_ion),
                   (1/10 * init_guess.R_ion, 10 * init_guess.R_ion),
                   (1/10 * init_guess.C_g, 10 * init_guess.C_g),
                   (1/2 * init_guess.J_s, 3 * init_guess.J_s),
-                  (1/1.5 * init_guess.nA, 1.5 * init_guess.nA)
+                  (1/1.5 * init_guess.nA, 1.5 * init_guess.nA),
+                  (1/1.5 * init_guess.R_srs, 1.5 * init_guess.R_srs)
                   ]
 
 
 
-    for i in range(0,6):
+    for i in range(0,7):
         ax_list[i] = plt.axes([0.25, 0.03 * (i+2)-0.02, 0.5, 0.02]) #position list for 
         ax_list_t[i] = plt.axes([0.1, 0.03 * (i+2)-0.02, 0.03, 0.02])    #position list for the textbox
         sliders[i] = Slider(
@@ -640,7 +672,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     def update(val,  ):            #function called when the value of slider is updated
         vals = [i.val for i in sl_val_list]
         init_guess.update_all(vals)
-        simu_Z , j = pmf.pero_model_ind(wlist,*vals,v)
+        simu_Z , j = pmf.pero_model_ind(wlist,*vals,init_guess.R_shnt,v)
         line2.set_ydata(-np.imag(simu_Z))
         line2.set_xdata(np.real(simu_Z))
         #second subplot
@@ -679,7 +711,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     textboxs[3].on_submit(lambda text: submit_2(text, crit_points,'C_g',init_guess))
     textboxs[4].on_submit(lambda text: submit_2(text, crit_points,'J_s',init_guess))
     textboxs[5].on_submit(lambda text: submit_2(text, crit_points,'nA',init_guess))
-
+    textboxs[6].on_submit(lambda text: submit_2(text, crit_points,'R_srs',init_guess))
     for key in sliders:
         sliders[key].on_changed(lambda val: update(val))
     resetax = plt.axes([0.8, 0.9, 0.1, 0.04])
@@ -718,6 +750,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     ax_list_t[3]._textbox = textboxs[3]
     ax_list_t[4]._textbox = textboxs[4]
     ax_list_t[5]._textbox = textboxs[5]
+    ax_list_t[6]._textbox = textboxs[6]
     # the button to proceed to the next step    
     ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
     button_next = Button(ax_next , 'Start Fitting', hovercolor='0.975')
@@ -761,7 +794,7 @@ def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,mode = 0):
     fix_index =  param_to_fix.fix_index()
     #the fit it done below
     result = pmf.global_fit(dfs , init_guess , fix_index,mode)
-    print(type(result))
+    #print(type(result))
     report_fit(result)
     result_dict = result.params.valuesdict()
     #putting the resultant parameters into the popt list
@@ -949,6 +982,11 @@ def plot_comp(popt , init_guess, dfs, mode = 0):
 def __main__(dfs, mode = 0):
     df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
     crit_points = find_point(dfs[-1]) 
+    
+    k = crit_points[1] / crit_points[0]
+    nA_e , J_s_e = find_nA_Js(dfs, k, mode = 1)
+    print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to be', nA_e , J_s_e)
+    
     ig = init_guess_find(df,crit_points) 
     init_guess = init_guess_class()
     init_guess.update_all(ig)

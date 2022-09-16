@@ -16,15 +16,14 @@ import pandas as pd
 import glob 
 from matplotlib.widgets import TextBox,Slider, Button,CheckButtons
 from lmfit import minimize, Minimizer, Parameters, Parameter, report_fit
+VT = 0.026
 
-
-def individual_no0V(df):
+def individual_no0V(dfs):
     '''
     This is for the case of individual fit and V is not 0.
     this function is the same as the original only version of fitting scenerio, so
     here I directly used the previously written function
-    '''
-    dfs = [df] #making the individual dataframe a list to use the global_fit function
+    ''' 
     igp.__main__(dfs,mode = 2) 
     
 
@@ -39,13 +38,14 @@ def global_no0V(dfs):
     
 
 
-def individual_0V(df):
+def individual_0V(dfs):
+    df = dfs[0]
     ig = igp.init_guess_find_0V(df)
 
     init_guess = igp.init_guess_class()
     init_guess.update_all_0V(ig)
     
-    print('----------',init_guess.J_nA)
+    # print('----------',init_guess.J_nA)
     result = pmf.global_fit([df], init_guess, mode = 1)
     report_fit(result)
     result_dict = result.params.valuesdict()
@@ -59,9 +59,15 @@ def individual_0V(df):
 
 
 def global_0V(dfs):
+   
     df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
     crit_points = igp.find_point(dfs[-1]) 
-    df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
+    
+    k = crit_points[1] / crit_points[0]
+    nA_e , J_s_e = igp.find_nA_Js(dfs, k, mode = 0)
+    print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to be', nA_e , J_s_e)
+    
+    # df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
     ig = igp.init_guess_find(df,crit_points,V0 = True, df_0V = dfs[0]) 
     init_guess = igp.init_guess_class()
     init_guess.update_all(ig)
@@ -79,46 +85,47 @@ def global_0V(dfs):
 
 
 
-#%% test
+# #%% test
 
-dfs = []
-for file in glob.glob('paperdata/**.xlsx'): 
-    df = pd.read_excel(file)
-    df = df[['frequency','z_real','z_imag','bias voltage','recomb current']]
-    df['z_imag'] = -df['z_imag'].values
-    dfs.append(df)
+# dfs = []
+# for file in glob.glob('paperdata/**.xlsx'): 
+#     df = pd.read_excel(file)
+#     df = df[['frequency','z_real','z_imag','bias voltage','recomb current']]
+#     df['z_imag'] = -df['z_imag'].values
+#     dfs.append(df)
 
-for df in dfs:
-    df['impedance'] = df['z_real'].values + df['z_imag'].values * 1j
+# for df in dfs:
+#     df['impedance'] = df['z_real'].values + df['z_imag'].values * 1j
 
-dfs.sort(key = lambda x: x['bias voltage'][0])  # making the dfs list sorted by the magnitude of the bias voltaege of each data set.
+# dfs.sort(key = lambda x: x['bias voltage'][0])  # making the dfs list sorted by the magnitude of the bias voltaege of each data set.
 
-wlist = np.logspace(-6,6,1000)
-a = 2 #change this to change the set of data to fit
-v = [0,.795,.846,.894]
+# wlist = np.logspace(-6,6,1000)
+# a = 2 #change this to change the set of data to fit
+# v = [0,.795,.846,.894]
 
-dfs=dfs[0:4]
-df = dfs[a]
-v = v[a]
+# dfs=dfs[0:4]
+# df = dfs[a]
+# v = v[a]
 
-#%%
-global_0V(dfs)
-
-
+# #%%
+# global_0V(dfs)
 
 
-#%%
-df= dfs[0]
-individual_0V(df)
 
 
-#%%
-df= dfs[2]
-individual_no0V(df)
+# #%%
+# df= dfs[0]
+# individual_0V(df)
 
-#%%
-dfs=dfs[1:4]
-global_no0V(dfs)
+
+# #%%
+# df= dfs[2]
+# individual_no0V(df)
+
+
+# #%%
+# dfs1=dfs[1:4]
+# global_no0V(dfs1)
 
 
 

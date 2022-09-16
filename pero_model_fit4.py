@@ -122,7 +122,7 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 0):
     wlist_big = np.array([])
     vlist_big = np.array([])
     for df in dfs:
-        print(type(df))
+        #print(type(df))
         zlist_big = np.concatenate((zlist_big , df['impedance'].values))
         wlist_big = np.concatenate((wlist_big , df['frequency'].values.real))
         vlist_big = np.concatenate((vlist_big , df['bias voltage'].values.real))
@@ -130,36 +130,39 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 0):
     zrlist_big = zlist_big.real 
     zilist_big = zlist_big.imag 
     Zlist_big = np.hstack([zrlist_big, zilist_big]) 
+    #print('----------', mode)
     
-    
-    if mode == 0:#this mod is for without 0V global and individual
-        params_list = ['C_A_0', 'C_ion_0', 'R_i',' C_g',' J_s', 'nA', 'V_bi','R_srs', 'R_shnt'] #the list of parameters names
-        params_list2 = ['C_A', 'C_ion', 'R_i',' C_g',' J_s', 'nA', 'V_bi','R_srs', 'R_shnt']
+    if mode == 0:#this mod is for global fit
+        params_list = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_srs', 'R_shnt'] #the list of parameters names
+        params_list2 = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_srs', 'R_shnt']
         #mod = Model(lambda wvb,C_A,C_ion,R_ion,C_g,J_s,nA: pero_sep(wvb,C_A,C_ion,R_ion,C_g,J_s,nA,vb)) # using the pero_sep function to define a model for the fitting
         mod = Model(pero_sep)
         pars = mod.make_params(C_A_0=init_guess.C_A,C_ion_0=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
                                J_s=init_guess.J_s,nA=init_guess.nA, V_bi = 1,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt) #define the parameters for the fitting
     if mode == 1: #this mod is for 0 V individually
-        params_list = ['C_ion', ' C_g','R_i',' J_nA','R_srs', 'R_shnt']
+        params_list = ['C_ion', ' C_g','R_ion','J_nA','R_srs', 'R_shnt']
+        params_list2 = ['C_ion', ' C_g','R_i','J_nA','R_srs', 'R_shnt']
         mod = Model(pero_sep_0V)
         pars = mod.make_params(C_ion=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
                                J_nA=init_guess.J_nA, V_bi= 1,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt)
     if mode == 2: #this mode is for no 0V individually
-        params_list = ['C_A', 'C_ion', 'R_i',' C_g',' J_s', 'nA','R_srs', 'R_shnt']
+        params_list = ['C_A', 'C_ion', 'R_ion','C_g','J_s', 'nA','R_srs', 'R_shnt']
+        params_list2 = ['C_A', 'C_ion', 'R_i','C_g','J_s', 'nA','R_srs', 'R_shnt']
         mod = Model(lambda w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt:pero_ind_sep(w, C_A, C_ion, R_i, C_g, J_s, nA, R_srs, R_shnt,vlist_big[0]) )
         pars = mod.make_params(C_A = init_guess.C_A,C_ion=init_guess.C_ion,R_i=init_guess.R_ion,C_g=init_guess.C_g,
                                J_s=init_guess.J_s,nA=init_guess.nA,R_srs = init_guess.R_srs , R_shnt = init_guess.R_shnt)
-        print('testtttttttttttt', init_guess.R_ion)    
-    print(mod.param_names, mod.independent_vars)
+        #print('testtttttttttttt', init_guess.R_ion)    
+    #print(mod.param_names, mod.independent_vars)
     #print(init_guess[2])
     for i in fix_index:    #make the user-selected fixed parameters to have a very narrow fitting range, virtually fixed.
-        pars[params_list[i]].max = getattr(init_guess,params_list2[i]) *1.001
-        pars[params_list[i]].min =getattr(init_guess,params_list2[i]) *0.999
+        pars[params_list2[i]].vary  = False
+        #pars[params_list[i]].min =getattr(init_guess,params_list2[i]) *0.999
     if mode == 0:
         pars['V_bi'].min = 0.9
         pars[ 'V_bi'].max = 1.5
         pars['nA'].min = 1
         
+    #pars['R_shnt'].vary = False
     
     if mode == 0:
         pars.pretty_print()

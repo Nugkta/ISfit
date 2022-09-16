@@ -38,6 +38,9 @@ dfs=dfs[0:4]
 df = dfs[a]
 v = v[a]
 
+#%%
+df_1 = dfs[2]
+
 
 
 
