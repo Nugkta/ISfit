@@ -180,7 +180,7 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 0):
   
     
    
-    pars.pretty_print()
+    # pars.pretty_print()
 
 
 

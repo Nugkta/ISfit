@@ -567,11 +567,24 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = 0):
 
 #%%
 
-def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
+def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0,refit = 0,popt = None):
+    
     plt.close()
+
     df = dfs[-1]
     v = df['bias voltage'][0]
-    simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
+    if refit == 0:
+        simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*init_guess.values(),v)
+    if refit == 1:
+        if mode == 0:
+            vlist = np.ones(len(wlist)) * v
+            wvlist = np.stack((wlist,vlist),axis = 1) 
+            new_init = popt
+            print(len(popt),2222222222222222222)
+            simu_Z, simu_J1 = pmf.pero_model(wvlist,*popt)
+        if mode == 2:
+            simu_Z, simu_J1 = pmf.pero_model_ind(wlist,*popt,v)
+        
     fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(16,7),ncols = 2 , nrows = 2)
 
 
@@ -759,7 +772,7 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
     # the button to proceed to the next step    
     ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
     button_next = Button(ax_next , 'Start Fitting', hovercolor='0.975')
-    button_next.on_clicked(lambda event:fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,mode,crit_points))
+    button_next.on_clicked(lambda event:fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode))
     
     ax_next._button_next = button_next
     resetax._button = button
@@ -794,10 +807,13 @@ def all_param_sliders(event,init_guess, dfs, crit_points,mode = 0):
 def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode = 0):
     '''
     doing the fitting and plot the comparison plot with the original data and the init_guess 
+    
     '''
+    print('igigigigigigigigigigigigigigigigig',init_guess.values())
     plt.close()
     fix_index =  param_to_fix.fix_index()
     #the fit it done below
+    print(type(dfs),type(init_guess),type(fix_index),mode)
     result = pmf.global_fit(dfs , init_guess , fix_index,mode)
     #print(type(result))
     report_fit(result)
@@ -857,8 +873,7 @@ def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode = 0)
     # plt.xscale('log')
 
 
-def plot_comp(popt , init_guess, dfs, crit_points, mode = 0):
-    
+def plot_comp(popt , init_guess, dfs, crit_points, mode = 0 ):
     zlist_big = np.array([])   
     wlist_big = np.array([])
     vlist_big = np.array([])
@@ -872,7 +887,7 @@ def plot_comp(popt , init_guess, dfs, crit_points, mode = 0):
     
     
     fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(16,7),ncols = 2 , nrows = 2)
-    fig.suptitle('Comparison between the initial guess and the fitted parameters', fontsize = 16)
+    fig.suptitle('Comparison between the initial guess and the fitted parameters,ttttt', fontsize = 16)
 
     #The Nyquist plot
     ax_nyq = plt.subplot(212)
@@ -938,6 +953,13 @@ def plot_comp(popt , init_guess, dfs, crit_points, mode = 0):
     ax_t.spines['right'].set_color('orange')
     ax_t.tick_params(axis='y', colors='orange')
     
+    print('tetetetettttetettttetetetttet, reached')
+    #doing a loop back, using fitted values as the intial guess
+    ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
+    button_next = Button(ax_next , 'Fit again', hovercolor='0.975')
+    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points,mode , refit = 1, popt = popt))
+    ax_next._button_next = button_next
+    
     
     v_set = set(vlist_big)
     for i in v_set:
@@ -952,21 +974,27 @@ def plot_comp(popt , init_guess, dfs, crit_points, mode = 0):
             C_A_0, C_ion_0, R_i, C_g, J_s, nA,  R_srs, R_shnt = init_guess.values()
             z_ig, j_ig = pmf.pero_model(wvlist,C_A_0, C_ion_0, R_i, C_g, J_s, nA, 1, R_srs, R_shnt)
             
-            C_A_0_e, C_ion_0_e, R_i_e, C_g_e, J_s_e, nA_e,  R_srs_e, R_shnt_e = popt
-            init_guess.update_all(popt, mode = 1)
+            # C_A_0_e, C_ion_0_e, R_i_e, C_g_e, J_s_e, nA_e,  R_srs_e, R_shnt_e = popt
+            # popt_t = popt
+            # popt_t.pop(6)
+            # init_guess.update_all(popt_t, mode = 1)
             
         if mode == 1: #0V (individual)
             z_fit = pmf.pero_model_0V(wlist,*popt)
             z_ig= pmf.pero_model_0V(wlist,*init_guess.values(mode = 1))
-            init_guess.update_all(popt, mode = 1)
+            # popt_t = popt
+            # popt_t.pop(6)
+            # init_guess.update_all(popt_t, mode = 1)
             
             
         if mode == 2:#ind without 0V
             z_fit, j_fit = pmf.pero_model_ind(wlist,*popt,vlist_big[0])
-            z_ig, j_ig= pmf.pero_model_ind(wlist,*init_guess.values(mode = 2),vlist_big[0])            
-            init_guess.update_all(popt,mode = 1)
+            z_ig, j_ig= pmf.pero_model_ind(wlist,*init_guess.values(mode = 2),vlist_big[0])    
             
-            
+            # popt_t = popt
+            # popt_t.pop(6)
+            # init_guess.update_all(popt_t, mode = 1)
+        print(len(popt),11111111111)   
         line3, =ax_nyq.plot(np.real(z_ig),-np.imag(z_ig),'b--', label = 'initial guess') #initial guess line
         line2, = ax_nyq.plot(np.real(z_fit),-np.imag(z_fit),'m-', label = 'fitted') #fitted parameter line
         
@@ -992,15 +1020,16 @@ def plot_comp(popt , init_guess, dfs, crit_points, mode = 0):
     ax2.legend(['experiemental','initial guess','fitted'],loc = 3, fontsize = 'small')
     ax_t.legend(['experiemental','initial guess','fitted'],loc = 1, fontsize = 'small')
     
-    
-    
-    
-    
-    #doing a loop back, using fitted values as the intial guess
-    ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
-    button_next = Button(ax_next , 'Start Fitting', hovercolor='0.975')
-    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points,mode))
-    ax_next._button_next = button_next
+                
+    popt_t = popt.copy()
+    popt_t.pop(6)
+    print(len(popt),33333333333333333333333333)
+    print(mode,'mmmmmmmmmmmmmmm')
+    if mode == 0:
+        init_guess.update_all(popt_t, mode = 1)   
+    if mode == 2:
+        init_guess.update_all(popt, mode = 1)   
+
 
 
 
