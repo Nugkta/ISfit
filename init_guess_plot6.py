@@ -873,7 +873,7 @@ def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode = 0)
     # plt.xscale('log')
 
 
-def plot_comp(popt , init_guess, dfs, crit_points, mode = 0 ):
+def plot_comp(popt , init_guess, dfs, crit_points=[], mode = 0 ):
     zlist_big = np.array([])   
     wlist_big = np.array([])
     vlist_big = np.array([])
@@ -956,10 +956,11 @@ def plot_comp(popt , init_guess, dfs, crit_points, mode = 0 ):
     print('tetetetettttetettttetetetttet, reached')
     #doing a loop back, using fitted values as the intial guess
     ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
-    button_next = Button(ax_next , 'Fit again', hovercolor='0.975')
-    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points,mode , refit = 1, popt = popt))
-    ax_next._button_next = button_next
-    
+    if mode != 1:
+        button_next = Button(ax_next , 'Fit again', hovercolor='0.975')
+        button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points,mode , refit = 1, popt = popt))
+        ax_next._button_next = button_next
+        
     
     v_set = set(vlist_big)
     for i in v_set:
@@ -1020,9 +1021,9 @@ def plot_comp(popt , init_guess, dfs, crit_points, mode = 0 ):
     ax2.legend(['experiemental','initial guess','fitted'],loc = 3, fontsize = 'small')
     ax_t.legend(['experiemental','initial guess','fitted'],loc = 1, fontsize = 'small')
     
-                
-    popt_t = popt.copy()
-    popt_t.pop(6)
+    if mode != 1:
+        popt_t = popt.copy()
+        popt_t.pop(6)
     print(len(popt),33333333333333333333333333)
     print(mode,'mmmmmmmmmmmmmmm')
     if mode == 0:
