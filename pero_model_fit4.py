@@ -95,7 +95,9 @@ def pero_sep(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA,  V_bi, R_srs, R_shnt):
     Because the pero_model will return a complex Z, while the curve fitting function does not support complex fitting,
     the function here will separate the real and imaginary part of the Z and put them in an array for the fitting function.
     '''
+    
     z = pero_model(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi, R_srs, R_shnt)[0] # only keep the Z_tot, not J1
+    print(np.shape(z),22222222222222222222222222222222222222222222222222222222222222)
     return np.hstack([z.real, z.imag])     # this will return a list of the form [z1real, z2real,...,z1imag, z2imag, ...]
 
 
