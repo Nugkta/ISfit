@@ -212,7 +212,7 @@ def find_extremum(df):
     zrilist = np.stack((zrlist , -zilist), axis = 1)
     
     # plotting the interactive Nyquist plot, and the examplary plot to instruct the user to choose the desired points
-    img = mpimg.imread('max_sample.png')
+    img = mpimg.imread('sample_plots/max_sample.png')
     fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
     ax1.set_title(' Click the maxima on this plot for the initial guesses')
@@ -222,7 +222,7 @@ def find_extremum(df):
     plt.close()
     
     # plotting the second interactive plot
-    img2 = mpimg.imread('min_sample.png')
+    img2 = mpimg.imread('sample_plots/min_sample.png')
     fig2, (ax3,ax4) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax3.plot(zrlist,-zilist,'.')
     ax3.set_title(' click the minimum on this plot for the initial guesses')
@@ -275,7 +275,7 @@ def find_R_ion(df):
     zilist = np.imag(df['impedance'].values)
     zrilist = np.stack((zrlist , -zilist), axis = 1)
     #letting user to determine the position of the minimum in Nyquist plot to find the R_ion
-    img = mpimg.imread('min_sample.png')
+    img = mpimg.imread('sample_plots/min_sample.png')
     fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
     ax1.plot(zrlist,-zilist,'.')
     ax1.set_title(' click the minimum on this plot for the initial guesses')
@@ -315,7 +315,7 @@ def init_guess_find(dfs ,mode = None, crit_points= None, V0 = False,df_0V = None
             df_0V =dfs[0]
             zrlist = np.real(df_0V['impedance'].values)
             zilist = np.imag(df_0V['impedance'].values)
-            img = mpimg.imread('end_sample_0V.png')
+            img = mpimg.imread('sample_plots/end_sample_0V.png')
             fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
             ax1.plot(zrlist,-zilist,'.')
             ax1.set_xlim(0,2.8 * max(zrlist))
@@ -339,7 +339,7 @@ def init_guess_find(dfs ,mode = None, crit_points= None, V0 = False,df_0V = None
         zrlist = np.real(df['impedance'].values)
         zilist = np.imag(df['impedance'].values)
         zrilist = np.stack((zrlist , -zilist), axis = 1)
-        img = mpimg.imread('min_sample_0V.png')
+        img = mpimg.imread('sample_plots/min_sample_0V.png')
 
         fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
         ax1.plot(zrlist,-zilist,'.')
@@ -351,7 +351,7 @@ def init_guess_find(dfs ,mode = None, crit_points= None, V0 = False,df_0V = None
         R_ion = mini[0][0]
         
         #Find C_g
-        img = mpimg.imread('max_sample_0V.png')
+        img = mpimg.imread('sample_plots/max_sample_0V.png')
 
         fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
         ax1.plot(zrlist,-zilist,'.')
@@ -367,7 +367,7 @@ def init_guess_find(dfs ,mode = None, crit_points= None, V0 = False,df_0V = None
         
         
         #Find J_nA and R_shnt by R_n
-        img = mpimg.imread('end_sample_0V.png')
+        img = mpimg.imread('sample_plots/end_sample_0V.png')
         fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
         ax1.plot(zrlist,-zilist,'.')
         ax1.set_xlim(0,2.8 * max(zrlist))
