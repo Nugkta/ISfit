@@ -516,7 +516,7 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = None):
     ax_t.legend()
     ax_t.spines['right'].set_color('orange')
     ax_t.tick_params(axis='y', colors='orange')
-
+    plt.tight_layout()
 
 
 # Adding the sliders
@@ -557,7 +557,7 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = None):
 
 
     R_slider.on_changed(lambda val: update_R_ion(val , crit_points))
-    resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
+    resetax = plt.axes([0.9, 0.025, 0.08, 0.04])
     button_R = Button(resetax, 'Reset', hovercolor='0.975')
 
 
@@ -597,7 +597,7 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = None):
     text_box.on_submit(lambda text: submit(text, crit_points))
     
 #add the button to proceed to the next step    
-    ax_next = plt.axes([0.8, 0.925, 0.1, 0.04])    #axis of the next step pattern
+    ax_next = plt.axes([0.9, 0.085, 0.08, 0.04])    #axis of the next step pattern
     button_next = Button(ax_next , 'Next step', hovercolor='0.975')
     button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points,mode))
     
@@ -662,7 +662,7 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
     ax_nyq.legend()
     ax_nyq.set_xlabel('Z\'')
     ax_nyq.set_ylabel('Z\'\'')
-    plt.subplots_adjust(left=0.1, bottom=.26)
+    plt.subplots_adjust(left=0.1, bottom=.32)
 
 
     #Z_real plot
@@ -714,8 +714,11 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
     ax_t.legend(loc = 1, fontsize = 'small')
     ax_t.spines['right'].set_color('orange')
     ax_t.tick_params(axis='y', colors='orange')
-
-
+    
+    #setting sapce between subplots
+    plt.subplots_adjust(left=0.06,
+                    wspace=0.3,
+                    hspace=0.4)
     # adding the sliders
 
     ax_list = {} #stores axis postion for the sliders
@@ -738,8 +741,8 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
 
     
         for i in range(0,8):
-            ax_list[i] = plt.axes([0.25, 0.03 * (i+2)-0.02, 0.5, 0.02]) #position list for 
-            ax_list_t[i] = plt.axes([0.1, 0.03 * (i+2)-0.02, 0.03, 0.02])    #position list for the textbox
+            ax_list[i] = plt.axes([0.25, 0.03 * (i+2)-0.05, 0.5, 0.02]) #position list for 
+            ax_list_t[i] = plt.axes([0.1, 0.03 * (i+2)-0.05, 0.03, 0.02])    #position list for the textbox
             sliders[i] = Slider(
                 ax = ax_list[i], 
                 label = 'the value of ' + param_name[i],
@@ -877,7 +880,7 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
 
 
     # Add a textbox as the title of the checkbottons
-    text_ax = plt.axes([0.95, 0.24, 0.0, 0.0])
+    text_ax = plt.axes([0.92, 0.24, 0.0, 0.0])
     label = 'Fix parameter'
     textbox = TextBox(text_ax,label)
     
@@ -903,13 +906,14 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
         ax_list_t[5]._textbox = textboxs[5]
 
     # the button to proceed to the next step    
-    ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
+    ax_next = plt.axes([0.8, 0.95, 0.1, 0.04])    #axis of the next step pattern
     button_next = Button(ax_next , 'Start Fitting', hovercolor='0.975')
     button_next.on_clicked(lambda event:fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode))
     
     ax_next._button_next = button_next
     resetax._button = button
     rax._checkbox = check
+
     fig.canvas.draw_idle()
 
 
@@ -947,7 +951,9 @@ def plot_comp(popt , init_guess, dfs, crit_points=[], mode = None ):
     
     fig, ((ax1 ,ax2),(ax3,ax4)) = plt.subplots(figsize=(16,7),ncols = 2 , nrows = 2)
     fig.suptitle('Comparison between the initial guess and the fitted parameters', fontsize = 16)
-
+    plt.subplots_adjust(left=0.1,
+                    wspace=0.3,
+                    hspace=0.4)
     #The Nyquist plot
     ax_nyq = plt.subplot(212)
     line1, = ax_nyq.plot(np.real(z_ex), -np.imag(z_ex),'x', ms=4 , label = 'actual data')   #actual data line
@@ -1068,7 +1074,7 @@ def plot_comp(popt , init_guess, dfs, crit_points=[], mode = None ):
     ax_eff.legend(['experiemental','initial guess','fitted'],loc = 1, fontsize = 'small')
     ax2.legend(['experiemental','initial guess','fitted'],loc = 3, fontsize = 'small')
     ax_t.legend(['experiemental','initial guess','fitted'],loc = 1, fontsize = 'small')
-    
+    #plt.tight_layout()
     if mode != 'ind_0V':
         popt_t = popt.copy()
         popt_t.pop(6)
@@ -1080,7 +1086,7 @@ def plot_comp(popt , init_guess, dfs, crit_points=[], mode = None ):
         init_guess.update_all(popt, mode = mode, refit = 1)   
     if mode == 'ind_0V':
         init_guess.update_all(popt, mode = mode, refit = 1)   
-
+    
 
 
 
