@@ -1019,7 +1019,7 @@ def plot_comp(popt , init_guess, dfs, crit_points=[], mode = None ):
     ax_t.tick_params(axis='y', colors='orange')
     
     #doing a loop back, using fitted values as the intial guess
-    ax_next = plt.axes([0.8, 0.95, 0.1, 0.02])    #axis of the next step pattern
+    ax_next = plt.axes([0.8, 0.95, 0.1, 0.04])    #axis of the next step pattern
 
     button_next = Button(ax_next , 'Fit again', hovercolor='0.975')
     button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points, mode , refit = 1, popt = popt))
