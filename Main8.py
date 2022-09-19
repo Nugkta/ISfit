@@ -50,7 +50,7 @@ def get_clean_data():
 
 
 
-def __main__(): #the input must be a list of dataframe, even when there is only one dataframe
+def main(): #the input must be a list of dataframe, even when there is only one dataframe
     dfs = get_clean_data()
     V0 = input('Do the data contain a set with 0 V bias? y/n: ')
     ind_glo = input('More than one bias voltage? y/n: ')
