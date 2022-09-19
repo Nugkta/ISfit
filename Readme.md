@@ -22,7 +22,7 @@ Statistics of result will be given as well
 ## Environment
 This tool requires simple environments to run. In addition to intalling some packages such as lmfit and glob, the users need to set the graphic of their IDE  to allow pop up windows for interactive plots.
 
-## Step 0 - Preprocessing The Data
+## Preprocessing The Data
 This tool requires the user to have the experimental data stored in Excel spreadsheets(.xlsx) with two further requirements.
 1. The spreadsheets should contain the data in the form shown as follows. The users are expected to preprocess the data to this form.
 
@@ -45,7 +45,7 @@ This tool requires the user to have the experimental data stored in Excel spread
 
 
 
-## Step 1 - Running The Tool
+## Running The Tool
 1. After forking the repository from GitHub. Make sure that the IDE is opening the correct directory that contains all the files of the functions.
 2. Open and run the Main8.py to load in all the modules and functions for the tool to work.
 3. Run main() in the console and follow the instructions.
