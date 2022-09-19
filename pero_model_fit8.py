@@ -68,7 +68,7 @@ def pero_model_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt,Vb): # f
     Z_tot3 = Z_tot2 + R_s
     return Z_tot3, J1      #returning the total impedance and the current in electronic branch
 
-def pero_model_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt):
+def pero_model_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt):
     '''
     The is the model of the perovskite.
     Used for individual fit of 0 bias voltage.
@@ -97,7 +97,7 @@ def pero_sep_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt,Vb):
 
 
 def pero_sep_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt):
-    z = pero_model_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt)
+    z = pero_model_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt)
     return np.hstack([z.real, z.imag])  
 
 
@@ -133,7 +133,7 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V'):
     #The following lines are for establishing the models for the fitting
     #Different parameters and models corresponds to different scenerios.
 
-    if mode == 'glob_0V' or 'glob_no0V': #this mode is for global fit
+    if mode == 'glob_0V' or mode == 'glob_no0V': #this mode is for global fit
         params_list = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_s', 'R_shnt'] #the list of parameters names
         # params_list2 = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_s', 'R_shnt']
         mod = Model(pero_sep_glob)
@@ -141,7 +141,7 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V'):
                                J_s=init_guess.J_s,nA=init_guess.nA, V_bi = 1,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt) #define the parameters for the fitting
         
     if mode == 'ind_0V': #this mode is for 0 V individually
-        params_list = ['C_ion', ' C_g','R_ion','J_nA','R_s', 'R_shnt']
+        params_list = ['C_ion', 'C_g','R_ion','J_nA','R_s', 'R_shnt']
         # params_list2 = ['C_ion', ' C_g','R_ion','J_nA','R_s', 'R_shnt']
         mod = Model(pero_sep_ind_0V)
         pars = mod.make_params(C_ion=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
@@ -154,35 +154,38 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V'):
         pars = mod.make_params(C_A = init_guess.C_A,C_ion=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
                                J_s=init_guess.J_s,nA=init_guess.nA,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt)
 
-
+        
+    # for i in params_list:
+    #     pars[i].min = -.01
 
     # make the user-selected fixed parameters to have a very narrow fitting range, virtually fixed.
     for i in fix_index:    
         pars[params_list[i]].vary  = False
         
     # setting a boundary for the bias voltage. 
-    if mode == 'glob_0V' or 'glob_no0V': 
+    if mode == 'glob_0V' or mode == 'glob_no0V': 
         pars['V_bi'].min = 0.9
         pars[ 'V_bi'].max = 1.5
     
     # setting a boundary for the the ideality factor for global fit
-    pars['nA'].min = 1
-        
+    if mode != 'ind_0V':
+        pars['nA'].min = 1
+
     
     # the following lines implement the fit on the data using different models for different cases.
-    if mode == 'glob_0V' or 'glob_no0V':
+    if mode == 'glob_0V' or mode == 'glob_no0V':
         pars.pretty_print()
-        result = mod.fit(Zlist_big,pars, w_Vb = wvlist_big , weights = 1 / Zlist_big)
+        result = mod.fit(Zlist_big,pars, w_Vb = wvlist_big, weights = 1 / Zlist_big)
         return result#This result is a class defined from the package lmfit, containing informations such as the fitted value, uncertainties, initial guess ...
     
     elif mode == 'ind_0V': 
         pars.pretty_print()
-        result = mod.fit(Zlist_big,pars, w = wlist_big) 
+        result = mod.fit(Zlist_big,pars, w = wlist_big, weights = 1 ) 
         return result 
     
     elif mode == 'ind_no0V': 
         pars.pretty_print()
-        result = mod.fit(Zlist_big,pars, w = wlist_big) 
+        result = mod.fit(Zlist_big,pars, w = wlist_big, weights = 1 / Zlist_big) 
         return result 
   
     
