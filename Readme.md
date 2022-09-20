@@ -6,7 +6,7 @@ This file only contains a general introduction and the instructions for the tool
 The fitting model is based on the model of an equivalent circuit; the theory of which **will not** be explained in this readme file, the user should refer to the supplementary material and the original paper[*reffff] for a more detailed explanation. 
 
 ## Introduction
-This tool is for fitting the data of impedance spectroscopy, taking the complex impedance of the device as the independent variable and the frequency of the small oscillating voltage as the dependent variable.
+This tool is for fitting the data of impedance spectroscopy, taking the complex impedance of the device as the dependent variable and the frequency of the small oscillating voltage as the independent variable.
 
 The tool can be used for 4 scenarios:
 1. Doing a global fit on multiple data sets which **contain** one 0 bias voltage set.
