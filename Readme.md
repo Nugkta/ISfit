@@ -60,7 +60,7 @@ Note that a seperate spreadsheet is required for each dataset corresponding to a
 ## Running The Tool
 1. After forking the repository from GitHub. Make sure that the IDE opens the correct directory containing all the function files and data folders.
 2. Open and run the Main8.py to load in all the modules and functions for the tool to work.
-3. Run "main()" in the console and follow the instructions.
+3. Follow the instructions.
 
     __Note that__: for the cases of the individual_no0V and global_no0V fits, after selecting the proper points in the pop up plots, the users have to enter the __guessed value of R_ion__ before continuing.
 4. The results, including the status (floating or fixed, initial guess, constrained range) of the fitted parameters, the resultant values of fitting, and other statistics (including numerical fit uncertainty assuming the model is correct) will be printed in the console.
