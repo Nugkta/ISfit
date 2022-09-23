@@ -64,7 +64,8 @@ def main(): #the input must be a list of dataframe, even when there is only one 
         ft.global_no0V(dfs)
 
 
-
+if __name__ == '__main__':
+    main()
 
 
 
