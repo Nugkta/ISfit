@@ -192,9 +192,17 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 0):
 
 
 
+#%% Test
+R_i = 6e4
 
+num_of_data = 40
+wlist = np.logspace(-6, 5, num_of_data)
+wlist=wlist[::-1]
+vlist = np.ones(len(wlist)) * 0
+wvlist = np.stack((wlist, vlist) , axis = 1)
+z,j = pero_model(wvlist, C_A_0, C_ion_0, R_i, C_g, J_s, nA, V_bi, R_s, R_shnt)
 
-
+plt.plot(z.real,-z.imag)
 
 
 
