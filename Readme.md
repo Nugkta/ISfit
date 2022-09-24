@@ -31,7 +31,7 @@ Note: For the cases when the R_ion is needed as a guess by the user, there will 
 
 
 ## Environment
-This tool requires simple environments to run. The following packages must be installed for the software to run: lmfit and glob [list required packages], the users need to set the graphic of their IDE  to allow pop up windows for the interactive plots.
+This tool requires simple environments to run. The following packages must be installed for the software to run: lmfit, numpy, pandas, glob, matplotlib. Also, the users need to set the graphic of their IDE  to allow pop up windows for the interactive plots.
 
 ## Preprocessing The Data
 At present this tool requires the user to have the experimental data stored in Excel spreadsheets(.xlsx) with two further requirements.
@@ -84,7 +84,14 @@ Note that a seperate spreadsheet is required for each dataset corresponding to a
 * J_nA: = The ratio of the saturation current density to ideality factor, J_s/n_A (this ratio cannot be separated in the case of an individual 0 V bias dataset).
 
 
+## Common Problems
+* The fit might not converge because the bias voltage is not large enough for the relative size of two half loop to stablise (not applicable to the 0 V individual fit). For individual fit, try a dataset with larger bias voltage. For global fit, add another dataset with larger bias voltage.
 
+* The intial guess for nA and J_s in global fit may not be accurate. Try using the estimation of nA and J_s by the other method (will be printed in the console for global fit sceneriosS).
+
+* If the data is noisy and scattered, the tool might not give a perfect fit right away. Play with the sliders.
+
+* Because the nA and J_s are coupled, the fit might give different set of results for these two parameters.
 
 
 

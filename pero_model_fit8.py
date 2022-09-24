@@ -103,7 +103,7 @@ def pero_sep_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt):
 
 
 #%% The function below is used for the global fitting for different scenerios.
-def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V'):
+def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V', V_bi_guess = 1):
     '''
     This is the function fot the global fit, so the data need to be stack together to form big arrays.
     For individual fit, just input a list of dataframes with only one dataframe as element.
@@ -113,8 +113,6 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V'):
     1. without 0V individual
     2. without 0V global
     '''
-
-
     #The following lines are for building up global arrays that stores different groups of the data for the later global fit.
     zlist_big = np.array([])      #because we are fitting the w,v to z, need to stack up all the w v and z list from different Vb each to be one big list. 
     wlist_big = np.array([])
@@ -129,7 +127,7 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V'):
     Zlist_big = np.hstack([zrlist_big, zilist_big]) 
    
     
-   
+    #print(V_bi_guess,1111111111111111111111)
     #The following lines are for establishing the models for the fitting
     #Different parameters and models corresponds to different scenerios.
 
@@ -138,14 +136,14 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V'):
         # params_list2 = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_s', 'R_shnt']
         mod = Model(pero_sep_glob)
         pars = mod.make_params(C_A_0=init_guess.C_A,C_ion_0=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
-                               J_s=init_guess.J_s,nA=init_guess.nA, V_bi = 1,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt) #define the parameters for the fitting
+                               J_s=init_guess.J_s,nA=init_guess.nA, V_bi = V_bi_guess,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt) #define the parameters for the fitting
         
     if mode == 'ind_0V': #this mode is for 0 V individually
         params_list = ['C_ion', 'C_g','R_ion','J_nA','R_s', 'R_shnt']
         # params_list2 = ['C_ion', ' C_g','R_ion','J_nA','R_s', 'R_shnt']
         mod = Model(pero_sep_ind_0V)
         pars = mod.make_params(C_ion=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
-                               J_nA=init_guess.J_nA, V_bi= 1,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt)
+                               J_nA=init_guess.J_nA, V_bi= V_bi_guess,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt)
         
     if mode == 'ind_no0V': #this mode is for no 0V individually
         params_list = ['C_A', 'C_ion', 'R_ion','C_g','J_s', 'nA','R_s', 'R_shnt']
@@ -164,8 +162,9 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V'):
         
     # setting a boundary for the bias voltage. 
     if mode == 'glob_0V' or mode == 'glob_no0V': 
-        pars['V_bi'].min = 0.9
-        pars[ 'V_bi'].max = 1.5
+        pars['V_bi'].min = V_bi_guess - .18
+        print(V_bi_guess - .18  ,  'xxxxxxxxxxxxxxxxxxxxxxxxxx')
+        pars[ 'V_bi'].max = V_bi_guess + .4
     
     # setting a boundary for the the ideality factor for global fit
     if mode != 'ind_0V':

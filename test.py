@@ -26,8 +26,9 @@ def get_clean_data_dfs(dfs): # preprocessing the data, but not from excel. From 
 
 
 #%%
-C_A_0 = 2e-5
-C_ion_0 = 1e-5
+C_A_0 = 2e-6
+C_A_0 = 3e-6
+C_ion_0 = 1e-6
 R_ion = 6e4
 C_g = 1e-7
 J_s = 1e-10
@@ -49,10 +50,10 @@ C_ion = 1e-6
 Vb = [0.3, 0.6, 0.9] # List of bias voltage
 # Vb = [0.1, 0.3, 0.5]# This s
 num_of_data = 40
-wlist = np.logspace(-3, 5, num_of_data)
+wlist = np.logspace(-3,6, num_of_data)
 wlist=wlist[::-1]
 dfs = []
-mu, sigma = 0, .03
+mu, sigma = 0, .005
 
 #adding the noise
 
@@ -82,15 +83,15 @@ ft.global_no0V(dfs_gn)
 
 
 
-#%%
+#%%in
 
 Vb = [0.9] # List of bias voltage
 # Vb = [0.1, 0.3, 0.5]# This s
 num_of_data = 40
-wlist = np.logspace(-3, 5, num_of_data)
+wlist = np.logspace(-3, 6, num_of_data)
 wlist=wlist[::-1]
 dfs = []
-mu, sigma = 0, .03
+mu, sigma = 0, .005
 
 #adding the noise
 
@@ -134,7 +135,7 @@ ft.individual_no0V(dfs_in)
 Vb = [0] # List of bias voltage
 # Vb = [0.1, 0.3, 0.5]# This s
 num_of_data = 40
-wlist = np.logspace(-3, 1, num_of_data)
+wlist = np.logspace(-5, 4, num_of_data)
 wlist = wlist[::-1]
 dfs = []
 mu, sigma = 0, .03

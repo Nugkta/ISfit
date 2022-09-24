@@ -34,6 +34,7 @@ def global_no0V(dfs):
     '''
     mode = 'glob_no0V'
     df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
+    Vb_max = df['bias voltage'][0]
     crit_points = igp.find_point(dfs[-1]) 
     k = crit_points[1] / crit_points[0]
     nA_e , J_s_e = igp.find_nA_Js(dfs, k, mode = mode)
@@ -41,7 +42,7 @@ def global_no0V(dfs):
     ig = igp.init_guess_find(dfs,crit_points = crit_points, mode = mode) 
     init_guess = igp.init_guess_class()
     init_guess.update_all(ig, mode = mode)
-    igp.R_ion_Slider(init_guess, dfs,crit_points, mode = mode)
+    igp.R_ion_Slider(init_guess, dfs,crit_points, mode = mode,Vb_max = Vb_max)
 
 
 def individual_0V(dfs):
@@ -71,12 +72,12 @@ def global_0V(dfs):
     k = crit_points[1] / crit_points[0]
     nA_e , J_s_e = igp.find_nA_Js(dfs, k, mode = mode)
     print('A different method(different from the built-in method in the following steps) gives estimation of nA and J_s to be %.3e %.3e'%( J_s_e, nA_e))
-    
+    Vb_max = df['bias voltage'][0]
     # df = dfs[-1]#only uses the last plot to find the initial guess (becasue it has the stable shape)
     ig = igp.init_guess_find(dfs,crit_points = crit_points,V0 = True, df_0V = dfs[0], mode = mode) 
     init_guess = igp.init_guess_class()
     init_guess.update_all(ig, mode = mode)
-    igp.R_ion_Slider(init_guess, dfs,crit_points = crit_points, mode = mode)
+    igp.R_ion_Slider(init_guess, dfs,crit_points = crit_points, mode = mode,Vb_max = Vb_max)
     return 
 
 

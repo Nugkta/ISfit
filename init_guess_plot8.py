@@ -43,7 +43,7 @@ class init_guess_class:
         self.J_s = None
         self.nA = None
         self.R_s = None
-        self.R_shnt = 10000  #setting a large initial guess for R_shnt for the case of global fit without 0V
+        self.R_shnt = 1e6  #setting a large initial guess for R_shnt for the case of global fit without 0V
         self.V_bi = None
         
         
@@ -454,7 +454,7 @@ def find_nA_Js(dfs,k, mode):
 wlist = np.logspace(-3, 6 ,10000) # the frequency list for plotting the non-experimental curve
 
 
-def R_ion_Slider(init_guess, dfs,crit_points, mode = None):
+def R_ion_Slider(init_guess, dfs,crit_points, mode = None, Vb_max = 1):
 # Obtain the initial guess simulated data of Z for the plotting later
     df = dfs[-1]
     v = df['bias voltage'][0]
@@ -599,7 +599,7 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = None):
 #add the button to proceed to the next step    
     ax_next = plt.axes([0.9, 0.085, 0.08, 0.04])    #axis of the next step pattern
     button_next = Button(ax_next , 'Next step', hovercolor='0.975')
-    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points,mode))
+    button_next.on_clicked(lambda event:all_param_sliders(event,init_guess, dfs, crit_points,mode, Vb_max = Vb_max))
     
 # reconnect the button to the objects defined before    
     resetax._button = button_R
@@ -613,7 +613,7 @@ def R_ion_Slider(init_guess, dfs,crit_points, mode = None):
 
 #%% Adjusting all parameters at the same time.
 
-def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, refit = 0,popt = None): 
+def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, refit = 0,popt = None, Vb_max = 1): 
     '''
     The intial guesses of all parameters can be adjusted by the sliders and visualised for comparison.
     Choose the parameters to fit during the fit.
@@ -908,7 +908,7 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
     # the button to proceed to the next step    
     ax_next = plt.axes([0.8, 0.95, 0.1, 0.04])    #axis of the next step pattern
     button_next = Button(ax_next , 'Start Fitting', hovercolor='0.975')
-    button_next.on_clicked(lambda event:fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode))
+    button_next.on_clicked(lambda event:fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode, Vb_max = Vb_max ))
     
     ax_next._button_next = button_next
     resetax._button = button
@@ -918,7 +918,7 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
 
 
 
-def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode = None):
+def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode = None, Vb_max = 1 ):
     '''
     doing the fitting and plot the comparison plot with the original data and the init_guess 
     
@@ -926,7 +926,7 @@ def fit_plot_comp_plots(event,param_to_fix,dfs,init_guess ,crit_points,mode = No
     plt.close()
     fix_index =  param_to_fix.fix_index()
     #the fit it done below
-    result = pmf.global_fit(dfs , init_guess , fix_index, mode)
+    result = pmf.global_fit(dfs , init_guess , fix_index, mode, V_bi_guess = Vb_max + .2)
     report_fit(result)
     result_dict = result.params.valuesdict()
     #putting the resultant parameters into the popt list
