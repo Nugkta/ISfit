@@ -24,21 +24,22 @@ def get_clean_data():
     fold_name = input('Input data folder name: ')
     for file in glob.glob(fold_name + '/**.xlsx'):  #data must be store in .xlsx files
         df = pd.read_excel(file)
-        df = df[['frequency','z_real','z_imag','applied voltage','J', 'J_ph']]
+        df = df[['angular frequency','Z_real','Z_imag','applied voltage','J', 'J_ph']]
+        df['frequency'] = df['angular frequency'].values
         # calculate the values needed for the fitting
-        Vb = df['applied voltage'].values - (df['J'].values[0] * min(df['z_real'].values)) * np.ones(len(df['applied voltage'].values))
+        Vb = df['applied voltage'].values - (df['J'].values[0] * min(df['Z_real'].values)) * np.ones(len(df['applied voltage'].values))
         J_n = df['J'].values + df['J_ph'].values
         
-        df['z_imag'] = -df['z_imag'].values
+        df['Z_imag'] = -df['Z_imag'].values
         df['recomb current'] = J_n
         df['bias voltage'] = Vb
         #rearrage and only keep the useful columns
-        df = df[['frequency','z_real','z_imag','bias voltage','recomb current']]
+        df = df[['frequency','Z_real','Z_imag','bias voltage','recomb current']]
         
         dfs.append(df)
         
     for df in dfs:
-        df['impedance'] = df['z_real'].values + df['z_imag'].values * 1j
+        df['impedance'] = df['Z_real'].values + df['Z_imag'].values * 1j
         
     dfs.sort(key = lambda x: x['bias voltage'][0]) # sort the lis tof dataframe by its bias voltage
     
