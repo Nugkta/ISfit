@@ -17,7 +17,7 @@ The tool can be used for 4 scenarios:
 The fitting results of the different scenarios will give the parameters listed at the end of this document[ref to paper].
 
 The workflow of the tool is:
-1. Plot the impedance data, allowing the user to choose some critical points on the plots (and to input a guess of the ionic resistance, R_ion, in cases where no data was collected at 0 V bias). Initial guess-finding function returns a set of initial guesses used for the fit. The explanation of the initial guess-finding function can be found in the document[reffff]
+1. Plot the impedance data, allowing the user to choose some critical points on the plots (and to input a guess of the ionic resistance, R_ion, in cases where no data was collected at 0 V bias). Initial guess-finding function returns a set of initial guesses used for the fit. The explanation of the initial guess-finding function can be found in the supplementary material.
 
 2. The tool will plot the simulated impedance data corresponding to the initial guess parameters in an interactive interface. The user can then adjust all the parameters using sliders or directly modifiy values to improve the initial guess. The user selects which parameters to float or fix during the following fit.
 
