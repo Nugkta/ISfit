@@ -43,7 +43,7 @@ class init_guess_class:
         self.J_s = None
         self.nA = None
         self.R_s = None
-        self.R_shnt = 1e6  #setting a large initial guess for R_shnt for the case of global fit without 0V
+        self.R_sh = 1e6  #setting a large initial guess for R_sh for the case of global fit without 0V
         self.V_bi = None
         
         
@@ -57,7 +57,7 @@ class init_guess_class:
             self.nA = init[5]
             self.R_s = init[6]
             if refit == 1:
-                self.R_shnt = init[7]
+                self.R_sh = init[7]
             
         if mode == 'glob_0V':
             self.C_A = init[0]
@@ -67,7 +67,7 @@ class init_guess_class:
             self.J_s = init[4]
             self.nA = init[5]
             self.R_s = init[6]
-            self.R_shnt = init[7]
+            self.R_sh = init[7]
             
         if mode == 'ind_0V': 
             self.C_ion = init[0]
@@ -75,7 +75,7 @@ class init_guess_class:
             self.R_ion = init[2]
             self.J_nA = init[3]
             self.R_s = init[4]
-            self.R_shnt = init[5]
+            self.R_sh = init[5]
 
     
     # def update_R_ion(self, R_ion): 
@@ -90,7 +90,7 @@ class init_guess_class:
                     self.J_s ,
                     self.nA,
                     self.R_s,
-                    self.R_shnt]
+                    self.R_sh]
         
         if mode == 'ind_0V': #0V individual
             return [self.C_ion ,
@@ -98,7 +98,7 @@ class init_guess_class:
                     self.R_ion ,
                     self.J_nA,
                     self.R_s,
-                    self.R_shnt]
+                    self.R_sh]
         
         if mode == 'ind_no0V': #no 0V individual
             return [self.C_A,
@@ -108,7 +108,7 @@ class init_guess_class:
                     self.J_s,
                     self.nA,
                     self.R_s,
-                    self.R_shnt]
+                    self.R_sh]
         
     def update_param(self,param,value): #updating a specific parameter
         setattr(self,param,value)
@@ -131,7 +131,7 @@ class fix_params_no0V:
         self.J_s = False
         self.nA = False
         self.R_s = False
-        self.R_shnt = False
+        self.R_sh = False
         
     def update_param(self,param,value):
         setattr(self,param,value)
@@ -147,7 +147,7 @@ class fix_params_no0V:
                 self.J_s ,
                 self.nA,
                 self.R_s,
-                self.R_shnt]
+                self.R_sh]
         
         index = []
         
@@ -168,7 +168,7 @@ class fix_params_0V:
         self.C_g = False
         self.J_nA = False
         self.R_s = False
-        self.R_shnt = False
+        self.R_sh = False
         
     def update_param(self,param,value):
         setattr(self,param,value)
@@ -183,7 +183,7 @@ class fix_params_0V:
                 self.R_ion ,
                 self.J_nA ,
                 self.R_s,
-                self.R_shnt]
+                self.R_sh]
         
         index = []
         
@@ -326,8 +326,8 @@ def init_guess_find(dfs ,mode = None, crit_points= None, V0 = False,df_0V = None
             plt.close()
             R_n = end[0][0]
             J_nA = kb*T / (R_n * q)
-            R_shnt = R_n
-            return C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt
+            R_sh = R_n
+            return C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_sh
     if mode == 'ind_0V':
 
         #This scenerio does not require an input of critical points.
@@ -366,7 +366,7 @@ def init_guess_find(dfs ,mode = None, crit_points= None, V0 = False,df_0V = None
         C_g = 1/(R_ion * w_g)
         
         
-        #Find J_nA and R_shnt by R_n
+        #Find J_nA and R_sh by R_n
         img = mpimg.imread('sample_plots/end_sample_0V.png')
         fig, (ax1,ax2) = plt.subplots(nrows = 1, ncols = 2,figsize =(16,7),gridspec_kw={'width_ratios': [2, 1]})
         ax1.plot(zrlist,-zilist,'.')
@@ -378,13 +378,13 @@ def init_guess_find(dfs ,mode = None, crit_points= None, V0 = False,df_0V = None
         plt.close()
         R_n = end[0][0]
         J_nA = kb*T / (R_n * q)
-        R_shnt = R_n
+        R_sh = R_n
         
         #Find C_ion by C_eff plot
         C_eff = np.real(np.imag(1/df['impedance'].values)/df['frequency'])
         C_ion = C_eff[-1]
         
-        return C_ion, C_g, R_ion, J_nA, R_s, R_shnt 
+        return C_ion, C_g, R_ion, J_nA, R_s, R_sh 
 
 
 
@@ -726,8 +726,8 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
     sliders = {} #stores the objects of the Sliders
     textboxs = {} #stores the objects of the text boxes for inputing inital guesses directly.
     if mode != 'ind_0V':
-        param_name = ['C_A', 'C_ion', 'R_ion', 'C_g', 'J_s', 'nA' ,'R_s', 'R_shnt']
-        param_dict ={'C_A':0, 'C_ion':1, 'R_ion':2, 'C_g':3, 'J_s':4, 'nA':5,'R_s':6, 'R_shnt':7}    #establish the correspondance between the order and the name of the parameters
+        param_name = ['C_A', 'C_ion', 'R_ion', 'C_g', 'J_s', 'nA' ,'R_s', 'R_sh']
+        param_dict ={'C_A':0, 'C_ion':1, 'R_ion':2, 'C_g':3, 'J_s':4, 'nA':5,'R_s':6, 'R_sh':7}    #establish the correspondance between the order and the name of the parameters
         range_list = [(1/3 * init_guess.C_A, 3 * init_guess.C_A ),
                       (1/3 * init_guess.C_ion, 3 * init_guess.C_ion),
                       (1/10 * init_guess.R_ion, 10 * init_guess.R_ion),
@@ -735,7 +735,7 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
                       (1/2 * init_guess.J_s, 3 * init_guess.J_s),
                       (1/1.5 * init_guess.nA, 1.5 * init_guess.nA),
                       (.3 * init_guess.R_s, 3 * init_guess.R_s),
-                      (1/3 * init_guess.R_shnt, 3 * init_guess.R_shnt)
+                      (1/3 * init_guess.R_sh, 3 * init_guess.R_sh)
                       ]
 
 
@@ -754,15 +754,15 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
                                   'Set '+ param_name[i]+' : ',
                                   initial='')
     if mode == 'ind_0V':
-        param_name = [ 'C_ion', 'C_g', 'R_ion', 'J_nA' ,'R_s', 'R_shnt']
-        param_dict ={'C_ion':0, 'C_g':1, 'R_ion':2, 'J_nA':3 ,'R_s':4, 'R_shnt':5}    #establish the correspondance between the order and the name of the parameters
+        param_name = [ 'C_ion', 'C_g', 'R_ion', 'J_nA' ,'R_s', 'R_sh']
+        param_dict ={'C_ion':0, 'C_g':1, 'R_ion':2, 'J_nA':3 ,'R_s':4, 'R_sh':5}    #establish the correspondance between the order and the name of the parameters
         range_list = [
                       (1/3 * init_guess.C_ion, 3 * init_guess.C_ion),
                       (1/3 * init_guess.C_g, 3 * init_guess.C_g),
                       (1/3 * init_guess.R_ion, 3 * init_guess.R_ion),
                       (1/2 * init_guess.J_nA, 3 * init_guess.J_nA),
                       (1/3* init_guess.R_s, 3 * init_guess.R_s),
-                      (.5 * init_guess.R_shnt, 5 * init_guess.R_shnt)
+                      (.5 * init_guess.R_sh, 5 * init_guess.R_sh)
                       ]
 
 
@@ -839,14 +839,14 @@ def all_param_sliders(event, init_guess, dfs, crit_points= None, mode = None, re
         textboxs[4].on_submit(lambda text: submit_2(text, crit_points,'J_s',init_guess, mode))
         textboxs[5].on_submit(lambda text: submit_2(text, crit_points,'nA',init_guess, mode))
         textboxs[6].on_submit(lambda text: submit_2(text, crit_points,'R_s',init_guess, mode))
-        textboxs[6].on_submit(lambda text: submit_2(text, crit_points,'R_shnt',init_guess, mode))
+        textboxs[6].on_submit(lambda text: submit_2(text, crit_points,'R_sh',init_guess, mode))
     if mode == 'ind_0V': 
         textboxs[0].on_submit(lambda text: submit_2(text, crit_points,'C_ion',init_guess, mode))
         textboxs[1].on_submit(lambda text: submit_2(text, crit_points,'C_g',init_guess, mode))
         textboxs[2].on_submit(lambda text: submit_2(text, crit_points,'R_ion',init_guess, mode))
         textboxs[3].on_submit(lambda text: submit_2(text, crit_points,'J_nA',init_guess, mode))
         textboxs[4].on_submit(lambda text: submit_2(text, crit_points,'R_s',init_guess, mode))
-        textboxs[5].on_submit(lambda text: submit_2(text, crit_points,'R_shnt',init_guess, mode))
+        textboxs[5].on_submit(lambda text: submit_2(text, crit_points,'R_sh',init_guess, mode))
 
     for key in sliders:
         sliders[key].on_changed(lambda val: update(val, mode))
@@ -1036,8 +1036,8 @@ def plot_comp(popt , init_guess, dfs, crit_points=[], mode = None ):
         if mode =='glob_0V' or mode == 'glob_no0V': #global no 0V
             
             z_fit, j_fit = pmf.pero_model_glob(wvlist,*popt)
-            C_A_0, C_ion_0, R_i, C_g, J_s, nA,  R_srs, R_shnt = init_guess.values(mode)
-            z_ig, j_ig = pmf.pero_model_glob(wvlist,C_A_0, C_ion_0, R_i, C_g, J_s, nA, 1, R_srs, R_shnt)
+            C_A_0, C_ion_0, R_i, C_g, J_s, nA,  R_srs, R_sh = init_guess.values(mode)
+            z_ig, j_ig = pmf.pero_model_glob(wvlist,C_A_0, C_ion_0, R_i, C_g, J_s, nA, 1, R_srs, R_sh)
 
             
         if mode == 'ind_0V': #0V (individual)

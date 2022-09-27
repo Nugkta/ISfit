@@ -20,7 +20,7 @@ kb = 1.38e-23 #boltzmann constant
 def Zcap(c, w): #returns the impedance of a capacitor with a input of capacitance and frequency
     return 1 / (1j * w * c)
 
-def pero_model_glob(w_Vb, C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi, R_s, R_shnt): #w is the list of frequency, the independent variable
+def pero_model_glob(w_Vb, C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi, R_s, R_sh): #w is the list of frequency, the independent variable
     '''
     The is the model of the perovskite.
     Used for the golbal fit for both with/without 0V case.
@@ -42,11 +42,11 @@ def pero_model_glob(w_Vb, C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi, R_s, R_shnt
     djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
-    Z_tot2 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_s and the R_shnt 
+    Z_tot2 = 1 / (1/Z_tot + 1/R_sh) # the Z_tot3 with the R_s and the R_sh 
     Z_tot3 = Z_tot2 + R_s
     return Z_tot3, J1      #returning the total impedance and the current in electronic branch
 
-def pero_model_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt,Vb): # for individual set
+def pero_model_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_sh,Vb): # for individual set
     '''
     The is the model of the perovskite.
     Used for individual fit of non-0 bias voltage.
@@ -64,11 +64,11 @@ def pero_model_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt,Vb): # f
     djdv = (1 - A) * Jrec / (nA * VT) + A * Jgen / (nA * VT)
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
-    Z_tot2 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_s and the R_shnt 
+    Z_tot2 = 1 / (1/Z_tot + 1/R_sh) # the Z_tot3 with the R_s and the R_sh 
     Z_tot3 = Z_tot2 + R_s
     return Z_tot3, J1      #returning the total impedance and the current in electronic branch
 
-def pero_model_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt):
+def pero_model_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_sh):
     '''
     The is the model of the perovskite.
     Used for individual fit of 0 bias voltage.
@@ -78,7 +78,7 @@ def pero_model_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt):
     djdv = J_nA/VT
     Z_elct = 1 / djdv #the impedance of the electronic branch
     Z_tot = 1 / (1/Z_ion + 1/ Z_elct) #the total impedance
-    Z_tot2 = 1 / (1/Z_tot + 1/R_shnt) # the Z_tot3 with the R_s and the R_shnt 
+    Z_tot2 = 1 / (1/Z_tot + 1/R_sh) # the Z_tot3 with the R_s and the R_sh 
     Z_tot3 = Z_tot2 + R_s
     return Z_tot3 
 
@@ -86,18 +86,18 @@ def pero_model_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt):
  
 #%% The functions below are used to separate the complex Z to real and imaginary part to use for the fitting package
 
-def pero_sep_glob(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA,  V_bi, R_s, R_shnt): 
-    z = pero_model_glob(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi, R_s, R_shnt)[0] # only keep the Z_tot, not J1
+def pero_sep_glob(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA,  V_bi, R_s, R_sh): 
+    z = pero_model_glob(w_Vb,C_A_0, C_ion_0, R_ion, C_g, J_s, nA, V_bi, R_s, R_sh)[0] # only keep the Z_tot, not J1
     return np.hstack([z.real, z.imag])     # this will return a list of the form [z1real, z2real,...,z1imag, z2imag, ...]
 
 
-def pero_sep_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt,Vb):
-    z,j = pero_model_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt,Vb)
+def pero_sep_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_sh,Vb):
+    z,j = pero_model_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_sh,Vb)
     return np.hstack([z.real, z.imag])
 
 
-def pero_sep_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt):
-    z = pero_model_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_shnt)
+def pero_sep_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_sh):
+    z = pero_model_ind_0V(w, C_ion, C_g, R_ion, J_nA, R_s, R_sh)
     return np.hstack([z.real, z.imag])  
 
 
@@ -132,25 +132,25 @@ def global_fit(dfs, init_guess, fix_index=[], mode = 'glob_0V', V_bi_guess = 1):
     #Different parameters and models corresponds to different scenerios.
 
     if mode == 'glob_0V' or mode == 'glob_no0V': #this mode is for global fit
-        params_list = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_s', 'R_shnt'] #the list of parameters names
-        # params_list2 = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_s', 'R_shnt']
+        params_list = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_s', 'R_sh'] #the list of parameters names
+        # params_list2 = ['C_A_0', 'C_ion_0', 'R_ion','C_g','J_s', 'nA', 'V_bi','R_s', 'R_sh']
         mod = Model(pero_sep_glob)
         pars = mod.make_params(C_A_0=init_guess.C_A,C_ion_0=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
-                               J_s=init_guess.J_s,nA=init_guess.nA, V_bi = V_bi_guess,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt) #define the parameters for the fitting
+                               J_s=init_guess.J_s,nA=init_guess.nA, V_bi = V_bi_guess,R_s = init_guess.R_s , R_sh = init_guess.R_sh) #define the parameters for the fitting
         
     if mode == 'ind_0V': #this mode is for 0 V individually
-        params_list = ['C_ion', 'C_g','R_ion','J_nA','R_s', 'R_shnt']
-        # params_list2 = ['C_ion', ' C_g','R_ion','J_nA','R_s', 'R_shnt']
+        params_list = ['C_ion', 'C_g','R_ion','J_nA','R_s', 'R_sh']
+        # params_list2 = ['C_ion', ' C_g','R_ion','J_nA','R_s', 'R_sh']
         mod = Model(pero_sep_ind_0V)
         pars = mod.make_params(C_ion=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
-                               J_nA=init_guess.J_nA, V_bi= V_bi_guess,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt)
+                               J_nA=init_guess.J_nA, V_bi= V_bi_guess,R_s = init_guess.R_s , R_sh = init_guess.R_sh)
         
     if mode == 'ind_no0V': #this mode is for no 0V individually
-        params_list = ['C_A', 'C_ion', 'R_ion','C_g','J_s', 'nA','R_s', 'R_shnt']
-        # params_list2 = ['C_A', 'C_ion', 'R_i','C_g','J_s', 'nA','R_s', 'R_shnt']
-        mod = Model(lambda w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt:pero_sep_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_shnt,vlist_big[0]) )
+        params_list = ['C_A', 'C_ion', 'R_ion','C_g','J_s', 'nA','R_s', 'R_sh']
+        # params_list2 = ['C_A', 'C_ion', 'R_i','C_g','J_s', 'nA','R_s', 'R_sh']
+        mod = Model(lambda w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_sh:pero_sep_ind_no0V(w, C_A, C_ion, R_ion, C_g, J_s, nA, R_s, R_sh,vlist_big[0]) )
         pars = mod.make_params(C_A = init_guess.C_A,C_ion=init_guess.C_ion,R_ion=init_guess.R_ion,C_g=init_guess.C_g,
-                               J_s=init_guess.J_s,nA=init_guess.nA,R_s = init_guess.R_s , R_shnt = init_guess.R_shnt)
+                               J_s=init_guess.J_s,nA=init_guess.nA,R_s = init_guess.R_s , R_sh = init_guess.R_sh)
 
         
     # for i in params_list:
