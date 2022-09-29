@@ -80,7 +80,7 @@ Note that a seperate spreadsheet is required for each dataset corresponding to a
 * J_s: The saturation current density of the interface dominating the observed impedance.
 * nA: The ideality factor of the interface dominating the observed impedance (represented by a transistor in the model).
 * R_s: The areal series resistance [resistance * area].
-* R_shnt: The areal shunt resistance [resistance * area].
+* R_sh: The areal shunt resistance [resistance * area].
 * J_nA: = The ratio of the saturation current density to ideality factor, J_s/n_A (this ratio cannot be separated in the case of an individual 0 V bias dataset).
 
 
