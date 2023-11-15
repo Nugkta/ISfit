@@ -3,7 +3,7 @@ This is a step-by-step guide to how to use this impedance spectroscopy fitting t
 Here is a link to a demo video. https://drive.google.com/file/d/1mJNRPPnp3hX5I2rG8-xsGXgh2VrzwJGD/view?usp=sharing
 This document only contains a general introduction and the instructions for the tool.
 
-The fitting model is based on the model of an equivalent circuit; the theory of which **will not** be explained in this readme file, the user should refer to the supplementary material and the original paper[*reffff] for a more detailed explanation. 
+The fitting model is based on the model of an equivalent circuit; the theory of which **will not** be explained in this readme file, the user should refer to the supplementary material and the original paper[Moia, Davide, et al(2019] for a more detailed explanation. 
 
 ## Introduction
 This tool is for fitting the data of impedance spectroscopy, taking the complex impedance of the device as the dependent variable and the frequency of the small oscillating voltage as the independent variable. Additionally the bias voltage, steady-state current and light intensity associated with the measurement are required.
